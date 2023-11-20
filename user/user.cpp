@@ -101,9 +101,9 @@ int send_tcp_message(string message) {
 
     int fd,errcode;
     ssize_t n;
-    socklen_t addrlen;
+    // socklen_t addrlen;               //WHY DONT WE NEED THIS?
     struct addrinfo hints,*res;
-    struct sockaddr_in addr;
+    // struct sockaddr_in addr;         //WHY DONT WE NEED THIS?
     char buffer[128];
 
     fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket

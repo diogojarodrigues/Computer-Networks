@@ -1,11 +1,13 @@
-CXX = g++
-CXXFLAGS = -std=c++11 -Wall
-TARGET_USER = user
-TARGET_SERVER = server
+.PHONY: all server user
 
-all: 
-	$(CXX) $(CXXFLAGS) user/user.cpp -o $(TARGET_USER)
+all: server user
 
+server:
+	$(MAKE) -C server
+
+user:
+	$(MAKE) -C user
 
 clean:
-	rm -f $(TARGET_USER) *.o
+	$(MAKE) -C server clean
+	$(MAKE) -C user clean
