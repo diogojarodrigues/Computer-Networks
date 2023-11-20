@@ -15,16 +15,18 @@
 #include <netdb.h>
 #include <stdlib.h>
 
-// #define PORT "58097"
-// #define PORT "localhost"
+// #define PORT "58097"                     //TODO: UNCOMENT WHEN SUBMITTING
+// #define PORT "localhost"                 //TODO: UNCOMENT WHEN SUBMITTING
 
-#define PORT "58011"                        // CHANGE THIS WHEN SUBMITTING
-#define SERVER "tejo.tecnico.ulisboa.pt"    // CHANGE THIS WHEN SUBMITTING
+#define PORT "58011"                        //TODO: CHANGE THIS WHEN SUBMITTING
+#define SERVER "tejo.tecnico.ulisboa.pt"    //TODO: CHANGE THIS WHEN SUBMITTING
 
 using namespace std;
 
 
-//  Auxiliar Functions
+// ############################################################
+//                      AUXILIARY FUNCTIONS
+// ############################################################
 
 void get_input(vector<string>* command) {
     string line;
@@ -40,8 +42,6 @@ void get_input(vector<string>* command) {
     while (iss >> word) {
         command->push_back(word);
     }
-    
-
 }
 
 bool isNumeric(const std::string& str) {
@@ -63,10 +63,12 @@ bool isAlphanumeric(const std::string& str) {
 }
 
 
-
-// Message Functions
+// ############################################################
+//                      PROTOCOL FUNCTIONS
+// ############################################################
 
 string send_udp_message(string message) {
+    
     int fd,errcode; 
     ssize_t n;
     socklen_t addrlen;
@@ -75,7 +77,7 @@ string send_udp_message(string message) {
     char buffer[128];
 
     fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
-    if (fd==-1) exit(1);                 /*error*/
+    if (fd==-1) exit(1);                /*error*/
 
     memset(&hints,0,sizeof hints);
     hints.ai_family=AF_INET;            //IPv4
@@ -101,9 +103,9 @@ int send_tcp_message(string message) {
 
     int fd,errcode;
     ssize_t n;
-    // socklen_t addrlen;               //WHY DONT WE NEED THIS?
+    // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
     struct addrinfo hints,*res;
-    // struct sockaddr_in addr;         //WHY DONT WE NEED THIS?
+    // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
     char buffer[128];
 
     fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
@@ -113,7 +115,7 @@ int send_tcp_message(string message) {
     hints.ai_family=AF_INET;            //IPv4
     hints.ai_socktype=SOCK_STREAM;      //TCP socket
     
-    errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //CHANGE THIS TO ONLY HAPPEN ONE TIME
+    errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     if(errcode!=0) exit(1);             /*error*/
     
 
@@ -126,17 +128,20 @@ int send_tcp_message(string message) {
     n=read(fd,buffer,128);
     if(n==-1) exit(1);                  /*error*/
     
-    freeaddrinfo(res);                  //CHANGE THIS TO ONLY HAPPEN ONE TIME
+    freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     close(fd);
 
     return 0;
 }
 
 
-// Command Functions
+// ############################################################
+//                      COMMAND FUNCTIONS
+// ############################################################
 
-void login(vector<string> command){
+void login(vector<string> command) {
 
+    // Check if the command is valid
     if (command.size()!=3) {
         cout << "login: format not valid!" << endl;
         return;
@@ -156,9 +161,11 @@ void login(vector<string> command){
         return;
     }
 
+    // Send the message to the server
     string request = "LIN " + uid + " " + password + "\n";
     string response = send_udp_message(request);
 
+    // Check the response
     if (response == "RLI REG\n") {
         cout << "new user registered" << endl;
     } else if (response == "RLI OK\n") {
@@ -170,38 +177,27 @@ void login(vector<string> command){
     }
 
 }
-// void login() {
-//     string command;
-//     string uid, password;
-//     cout << "uid: ";
-//     cin >> uid;
-//     cout << "password: ";
-//     cin >> password;
-//     command = "login " + uid + " " + password;
-//     send_tcp_message(command);
-// }
 
-void logout(){};
-void unregister(){};
-void exitt(){};
-void open(){};
-void closee(){};
-void myauctions(){};
-void mybids(){};
-void list(){};
-void show_asset(){};
-void bid(){};
-void show_record(){};
+void logout() {};
+void unregister() {};
+void exitt() {};
+void open() {};
+void closee() {};
+void myauctions() {};
+void mybids() {};
+void list() {};
+void show_asset() {};
+void bid() {};
+void show_record() {};
 
 
-
-
-
+// ############################################################
+//                          MAIN
+// ############################################################
 
 int main(int argc, char** argv) {
 
     vector<string> command;
-
 
     while (true) {
         
@@ -209,40 +205,32 @@ int main(int argc, char** argv) {
 
         if (command[0]=="login") {
             login(command);
-        }else if (command[0]=="logout"){
+        } else if (command[0]=="logout"){
             logout();
-        }else if (command[0]=="unregister"){
+        } else if (command[0]=="unregister"){
             unregister();
-        }else if (command[0]=="exit"){
+        } else if (command[0]=="exit"){
             exitt();
-        }else if (command[0]=="open"){
+        } else if (command[0]=="open"){
             open();
-        }else if (command[0]=="close"){
+        } else if (command[0]=="close"){
             closee();
-            
-        }else if (command[0]=="myauctions" || command[0] == "ma"){
+        } else if (command[0]=="myauctions" || command[0] == "ma"){
             myauctions();
-            
-        }else if (command[0]=="mybids" || command[0] == "mb"){
+        } else if (command[0]=="mybids" || command[0] == "mb"){
             mybids();
-            
-        }else if (command[0]=="list" || command[0] == "l"){
+        } else if (command[0]=="list" || command[0] == "l"){
             list();
-            
-        }else if (command[0]=="show_asset" || command[0] == "sa"){
+        } else if (command[0]=="show_asset" || command[0] == "sa"){
             show_asset();
-            
-        }else if (command[0]=="bid" || command[0] == "b"){
+        } else if (command[0]=="bid" || command[0] == "b"){
             bid();
-            
-        }else if (command[0]=="show_record" || command[0] == "sr"){
+        } else if (command[0]=="show_record" || command[0] == "sr"){
             show_record();
-            
-        }else {
+        } else {
             cout << "Invalid command" << endl;
         }
 
-        
     } 
 
     return 0;
