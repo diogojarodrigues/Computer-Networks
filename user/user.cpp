@@ -145,6 +145,12 @@ int send_tcp_message(string message) {
 
 void login() {
 
+    // Check if the user is already logged in
+    if (!current_uid.empty() || !current_password.empty()) {
+        cout << "You are already logged in" << endl;
+        return;
+    }
+
     // Check if the command is valid
     if (command.size()!=3) {
         cout << "login: format not valid!" << endl;
@@ -204,13 +210,10 @@ void logout() {
         cout << "successful logout" << endl;
     } else if (response == "RLO NOK\n") {
         cout << "user not logged in" << endl;
-        return;
     } else if (response == "RLO UNR\n") {
         cout << "unknown user" << endl;
-        return;
     } else {
         cout << "logout: error" << endl;
-        return;
     }
 
     // Clear the current uid and password
@@ -236,13 +239,10 @@ void unregister() {
         cout << "successful unregister" << endl;
     } else if (response == "RUR NOK\n") {
         cout << "incorrect unregister attempt" << endl;
-        return;
     } else if (response == "RUR UNR\n") {
         cout << "unknown user" << endl;
-        return;
     } else {
         cout << "unregister: error" << endl;
-        return;
     }
 
     // Clear the current uid and password
@@ -251,23 +251,32 @@ void unregister() {
 };
 
 void exitt() {
+
+    // Check if the user is logged in
     if (!current_uid.empty() || !current_password.empty()) {
         cout << "You should logout first" << endl;
         return;
     }
 
+    cout << "Exiting..." << endl;
     exit(0);
 };
+
+
 
 void open() {};
 void closee() {};
 void myauctions() {};
 void mybids() {};
-void list() {};
+
+
 void show_asset() {};
 void bid() {};
 void show_record() {};
 
+void show_current_user() {
+    cout << "Current user -> UID: " << current_uid << " Pass: " << current_password << endl;
+};
 
 // ############################################################
 //                          MAIN
@@ -277,6 +286,7 @@ int main(int argc, char** argv) {
 
     while (true) {
         
+        cout << ">> ";
         get_input(&command);
 
         if (command[0]=="login") {
@@ -303,12 +313,13 @@ int main(int argc, char** argv) {
             bid();
         } else if (command[0]=="show_record" || command[0] == "sr"){
             show_record();
+        } else if (command[0]=="show_user" || command[0] == "user"){
+            show_current_user();
         } else {
             cout << "Invalid command" << endl;
         }
 
-        printf("\tmain: current_uid: %s\n", current_uid.c_str());
-        printf("\tmain: current_password: %s\n", current_password.c_str());
+        cout << endl;
     } 
 
     return 0;
