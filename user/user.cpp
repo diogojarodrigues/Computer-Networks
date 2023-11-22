@@ -28,6 +28,10 @@ using namespace std;
 //                      AUXILIARY FUNCTIONS
 // ############################################################
 
+vector<string> command;
+string current_uid = "";
+string current_password = "";
+
 void get_input(vector<string>* command) {
     string line;
     command->clear();
@@ -139,7 +143,7 @@ int send_tcp_message(string message) {
 //                      COMMAND FUNCTIONS
 // ############################################################
 
-void login(vector<string> command) {
+void login() {
 
     // Check if the command is valid
     if (command.size()!=3) {
@@ -172,15 +176,89 @@ void login(vector<string> command) {
         cout << "successful login" << endl;
     } else if (response == "RLI NOK\n") {
         cout << "incorrect login attempt" << endl;
+        return;
     } else {
         cout << "login: error" << endl;
+        return;
     }
 
+    // Save the current uid and password
+    current_uid = uid;
+    current_password = password;
 }
 
-void logout() {};
-void unregister() {};
-void exitt() {};
+void logout() {
+
+    // Check if the command is valid
+    if (current_uid.empty() || current_password.empty()) {
+        cout << "You should logged in first" << endl;
+        return;
+    }
+
+    // Send the message to the server
+    string request = "LOU " + current_uid + " " + current_password + "\n";
+    string response = send_udp_message(request);
+
+    // Check the response
+    if (response == "RLO OK\n") {
+        cout << "successful logout" << endl;
+    } else if (response == "RLO NOK\n") {
+        cout << "user not logged in" << endl;
+        return;
+    } else if (response == "RLO UNR\n") {
+        cout << "unknown user" << endl;
+        return;
+    } else {
+        cout << "logout: error" << endl;
+        return;
+    }
+
+    // Clear the current uid and password
+    current_uid.clear();
+    current_password.clear();
+};
+
+
+void unregister() {
+
+    // Check if the command is valid
+    if (current_uid.empty() || current_password.empty()) {
+        cout << "You should logged in first" << endl;
+        return;
+    }
+
+    // Send the message to the server
+    string request = "UNR " + current_uid + " " + current_password + "\n";
+    string response = send_udp_message(request);
+
+    // Check the response
+    if (response == "RUR OK\n") {
+        cout << "successful unregister" << endl;
+    } else if (response == "RUR NOK\n") {
+        cout << "incorrect unregister attempt" << endl;
+        return;
+    } else if (response == "RUR UNR\n") {
+        cout << "unknown user" << endl;
+        return;
+    } else {
+        cout << "unregister: error" << endl;
+        return;
+    }
+
+    // Clear the current uid and password
+    current_uid.clear();
+    current_password.clear();
+};
+
+void exitt() {
+    if (!current_uid.empty() || !current_password.empty()) {
+        cout << "You should logout first" << endl;
+        return;
+    }
+
+    exit(0);
+};
+
 void open() {};
 void closee() {};
 void myauctions() {};
@@ -197,14 +275,12 @@ void show_record() {};
 
 int main(int argc, char** argv) {
 
-    vector<string> command;
-
     while (true) {
         
         get_input(&command);
 
         if (command[0]=="login") {
-            login(command);
+            login();
         } else if (command[0]=="logout"){
             logout();
         } else if (command[0]=="unregister"){
@@ -231,6 +307,8 @@ int main(int argc, char** argv) {
             cout << "Invalid command" << endl;
         }
 
+        printf("\tmain: current_uid: %s\n", current_uid.c_str());
+        printf("\tmain: current_password: %s\n", current_password.c_str());
     } 
 
     return 0;
