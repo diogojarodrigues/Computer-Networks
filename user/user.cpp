@@ -84,7 +84,7 @@ string get_auctions_bids(string response){
         else if(c==' ')
             k=1;
         }
-        return auctions;  
+    return auctions;  
 }
 
 
