@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdlib.h>
+#include <cstring>
 
 // #define PORT "58097"                     //TODO: UNCOMENT WHEN SUBMITTING
 // #define PORT "localhost"                 //TODO: UNCOMENT WHEN SUBMITTING
@@ -83,7 +84,10 @@ string get_auctions_bids(string response){
             auctions += "is not active\n";
         else if(c==' ')
             k=1;
+        else if(c=='\n')
+            continue;
         }
+        
     return auctions;  
 }
 
@@ -99,7 +103,7 @@ string send_udp_message(string message) {
     socklen_t addrlen;
     struct addrinfo hints, *res;
     struct sockaddr_in addr;
-    char buffer[128];
+    char buffer[99999];
 
     fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
     if (fd==-1) exit(1);                /*error*/
@@ -115,7 +119,7 @@ string send_udp_message(string message) {
     if(n==-1) exit(1);                 /*error*/
 
     addrlen=sizeof(addr);
-    n=recvfrom(fd,buffer,128,0, (struct sockaddr*) &addr, &addrlen);
+    n=recvfrom(fd,buffer,99999,0, (struct sockaddr*) &addr, &addrlen);
     if(n==-1) exit(1);                 /*error*/
 
     freeaddrinfo(res);
@@ -376,7 +380,7 @@ void myauctions() {
         return;
     } else if (r == "RMA OK ") {
         string auctions= get_auctions_bids(response);
-        cout << auctions << endl;
+        cout << auctions ;
         return;
     } 
 };
@@ -393,12 +397,25 @@ void mybids() {
         return;
     } else if (r == "RMB OK ") {
         string auctions= get_auctions_bids(response);   
-        cout << auctions << endl;
+        cout << auctions ;
         return;
     } 
 };
 
-void list() {};
+void list() {
+    string request = "LST\n";
+    string response = send_udp_message(request);
+    string r = response.substr(0, 7);
+    if (r == "RLS NOK") {
+        cout << "no auction was yet started" << endl;
+        return;
+    } else if (r == "RLS OK ") {
+        string auctions= get_auctions_bids(response);   
+        cout << auctions ;
+        return;
+    } 
+
+};
 
 void show_asset() {};
 
