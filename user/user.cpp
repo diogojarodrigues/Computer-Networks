@@ -67,7 +67,6 @@ bool isAlphanumeric(const std::string& str) {
 }
 
 string get_auctions_bids(string response){
-    int i=0;
     int k=1; // 1 and 3 in aid, 0 in status
     string final = response.substr(7, response.size()-7);
     string auctions="";
@@ -87,6 +86,27 @@ string get_auctions_bids(string response){
         return auctions;  
 }
 
+void print_auctions(string auctions){
+    
+    printf("%s\n", auctions.c_str());
+
+    int k=0; // 1 and 3 in aid, 0 in status
+    for (char c : auctions) {
+        if(k>=0 && k<=3){
+            if (k==0)
+                cout << "AID: ";
+            cout << c;
+            k++;
+            continue;
+        }
+        else if(c=='1')
+            cout << "is active\n";
+        else if(c=='0')
+            cout << "is not active\n";
+        else if(c==' ')
+            k=0;
+        }
+}
 
 // ############################################################
 //                      PROTOCOL FUNCTIONS
@@ -283,28 +303,30 @@ void exitt() {
 };
 
 void open() {
+
     // Check if the command is valid
-    if (command.size()!=5) {
+    if (command.size() != 5) {
         cout << "open: format not valid!" << endl;
         return;
     }
-    string name,fname, start_value,timeactive;
+    
+    string name, fname, start_value,timeactive;
     name = command[1];
     fname = command[2];
     start_value = command[3];
     timeactive = command[4];
 
     if (name.length() > 10 || !isAlphanumeric(name)) {
-        cout << "login: password must be alphanumeric and have 8 digits" << endl;
+        cout << "open: password must be alphanumeric and have 8 digits" << endl;
         return;
     }
 
-    if (start_value.length()>6 || !isNumeric(start_value)) {
+    if (start_value.length() > 6 || !isNumeric(start_value)) {
         cout << "open: start value must be numeric" << endl;
         return;
     }
 
-    if (timeactive.length()>5 ||!isNumeric(timeactive)) {
+    if (timeactive.length() > 5 ||!isNumeric(timeactive)) {
         cout << "open: time active must be numeric" << endl;
         return;
     }
@@ -315,14 +337,16 @@ void open() {
     string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + fsize + " " + fdata + "\n";
     string response = send_tcp_message(request);
 
-    string r = response.substr(0, 7);
+    printf("%s\n", response.c_str());
+    string status = response.substr(0, 7);
+    printf("%s\n", status.c_str());
 
-    if (r == "ROA NOK") {
+    if (status == "ROA NOK") {
         cout << "auction could not be started" << endl;
-    } else if (r == "ROA NLG") {
-        cout << "user is not logged" << endl;
-    } else if (r == "ROA OK ") {
-        string aid =response.substr(8, 3);
+    } else if (status == "ROA NLG") {
+        cout << "user is not logged in" << endl;
+    } else if (status == "ROA OK ") {
+        string aid = response.substr(8, 3);
         cout << "AID =" + aid << endl;
     } else {
         cout << "open: error" << endl;
@@ -336,10 +360,11 @@ void closee() {
     }
     string aid;
     aid = command[1];
-    if(aid.length()!=3 || !isNumeric(aid)){
+    if (aid.length()!= 3 || !isNumeric(aid)) {
         cout << "close: aid must be numeric and have 3 digits" << endl;
         return;
     };
+
     string request = "CLS " + current_uid + " " + current_password + " "+ aid +"\n";
     string response = send_tcp_message(request);
 
@@ -347,19 +372,14 @@ void closee() {
         cout << "auction was closed" << endl;
     } else if (response == "RCL NLG\n") {
         cout << "user is not logged" << endl;
-        return;
     } else if (response == "RCL EAU\n") {
         cout << "auction does not exist" << endl;
-        return;
     } else if (response == "RCL EOW\n") {
         cout << "auction not owned by the user" << endl;
-        return;
-    }else if (response == "RCL END\n") {
+    } else if (response == "RCL END\n") {
         cout << "auction has already finished" << endl;
-        return;
-    }else {
+    } else {
         cout << "close: error" << endl;
-        return;
     }
     
 }
@@ -367,38 +387,49 @@ void closee() {
 void myauctions() {
     string request = "LMA " + current_uid +"\n";
     string response = send_udp_message(request);
-    string r = response.substr(0, 7);
-    if (r == "RMA NOK") {
+    string status = response.substr(0, 7);
+    if (status == "RMA NOK") {
         cout << "user UID has no ongoing auctions" << endl;
-        return;
-    } else if (r == "RMA NLG") {
+    } else if (status == "RMA NLG") {
         cout << "user is not logged" << endl;
-        return;
-    } else if (r == "RMA OK ") {
-        string auctions= get_auctions_bids(response);
+    } else if (status == "RMA OK ") {
+        string auctions = get_auctions_bids(response);
         cout << auctions << endl;
-        return;
     } 
 };
 
 void mybids() {
     string request = "LMB " + current_uid +"\n";
     string response = send_udp_message(request);
-    string r = response.substr(0, 7);
-    if (r == "RMB NOK") {
+    string status = response.substr(0, 7);
+
+    if (status == "RMB NOK") {
         cout << "user UID has no ongoing bids" << endl;
-        return;
-    } else if (r == "RMB NLG") {
+    } else if (status == "RMB NLG") {
         cout << "user is not logged" << endl;
-        return;
-    } else if (r == "RMB OK ") {
+    } else if (status == "RMB OK ") {
         string auctions= get_auctions_bids(response);   
         cout << auctions << endl;
-        return;
     } 
 };
 
-void list() {};
+void list() {
+    string request = "LST\n";
+    string response = "";
+    response = send_udp_message(request);
+
+    string status = response.substr(0, 7);
+    string data = response.substr(7, response.size()-7);
+
+    if (status == "RLS NOK\n") {
+        cout << "user is not logged in" << endl;
+    } else if (status == "RLS OK ") {
+        cout << "auctions list: " << endl;
+        print_auctions(data);
+    } else {
+        cout << "list: error" << endl;
+    }
+};
 
 void show_asset() {};
 
