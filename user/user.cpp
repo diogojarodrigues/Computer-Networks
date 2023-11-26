@@ -103,7 +103,7 @@ string send_udp_message(string message) {
     socklen_t addrlen;
     struct addrinfo hints, *res;
     struct sockaddr_in addr;
-    char buffer[99999];
+    char buffer[2048];
 
     fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
     if (fd==-1) exit(1);                /*error*/
@@ -119,7 +119,7 @@ string send_udp_message(string message) {
     if(n==-1) exit(1);                 /*error*/
 
     addrlen=sizeof(addr);
-    n=recvfrom(fd,buffer,99999,0, (struct sockaddr*) &addr, &addrlen);
+    n=recvfrom(fd,buffer,2048,0, (struct sockaddr*) &addr, &addrlen);
     if(n==-1) exit(1);                 /*error*/
 
     freeaddrinfo(res);
@@ -135,7 +135,7 @@ string send_tcp_message(string message) {
     // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
     struct addrinfo hints,*res;
     // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
-    char buffer[128];
+    char buffer[2048];
 
     fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
     if (fd==-1) exit(1);                //error
@@ -154,7 +154,7 @@ string send_tcp_message(string message) {
     n=write(fd, message.c_str(), message.size());
     if(n==-1) exit(1);                  /*error*/
     
-    n=read(fd,buffer,128);
+    n=read(fd,buffer,2048);
     if(n==-1) exit(1);                  /*error*/
     
     freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
