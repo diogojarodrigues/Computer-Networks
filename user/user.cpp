@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdlib.h>
+#include <cstring>
 
 // #define PORT "58097"                     //TODO: UNCOMENT WHEN SUBMITTING
 // #define PORT "localhost"                 //TODO: UNCOMENT WHEN SUBMITTING
@@ -82,8 +83,11 @@ string get_auctions_bids(string response){
             auctions += "is not active\n";
         else if(c==' ')
             k=1;
+        else if(c=='\n')
+            continue;
         }
-        return auctions;  
+        
+    return auctions;  
 }
 
 void print_auctions(string auctions){
@@ -119,7 +123,7 @@ string send_udp_message(string message) {
     socklen_t addrlen;
     struct addrinfo hints, *res;
     struct sockaddr_in addr;
-    char buffer[128];
+    char buffer[99999];
 
     fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
     if (fd==-1) exit(1);                /*error*/
@@ -135,7 +139,7 @@ string send_udp_message(string message) {
     if(n==-1) exit(1);                 /*error*/
 
     addrlen=sizeof(addr);
-    n=recvfrom(fd,buffer,128,0, (struct sockaddr*) &addr, &addrlen);
+    n=recvfrom(fd,buffer,99999,0, (struct sockaddr*) &addr, &addrlen);
     if(n==-1) exit(1);                 /*error*/
 
     freeaddrinfo(res);
@@ -322,7 +326,7 @@ void open() {
     }
 
     if (start_value.length() > 6 || !isNumeric(start_value)) {
-        cout << "open: start value must be numeric" << endl;
+        cout << "open: start value must be numeric and " << endl;
         return;
     }
 
@@ -330,9 +334,6 @@ void open() {
         cout << "open: time active must be numeric" << endl;
         return;
     }
-
-    string fsize = "1";
-    string fdata = "1";
 
     string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + fsize + " " + fdata + "\n";
     string response = send_tcp_message(request);
@@ -410,26 +411,11 @@ void mybids() {
     } else if (status == "RMB OK ") {
         string auctions= get_auctions_bids(response);   
         cout << auctions << endl;
+        return;
     } 
 };
 
-void list() {
-    string request = "LST\n";
-    string response = "";
-    response = send_udp_message(request);
-
-    string status = response.substr(0, 7);
-    string data = response.substr(7, response.size()-7);
-
-    if (status == "RLS NOK\n") {
-        cout << "user is not logged in" << endl;
-    } else if (status == "RLS OK ") {
-        cout << "auctions list: " << endl;
-        print_auctions(data);
-    } else {
-        cout << "list: error" << endl;
-    }
-};
+void list() {};
 
 void show_asset() {};
 
