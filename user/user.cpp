@@ -5,7 +5,14 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
 
+
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -112,6 +119,40 @@ void print_auctions(string auctions){
         }
 }
 
+void create_file_copy(ifstream* source_file, const string& destination_filename) {
+
+    source_file->clear(); // Clear any error flags that might affect reading
+    source_file->seekg(0, ios::beg); // Move the file pointer to the beginning of the file
+
+    string destination = "user/images/" + destination_filename;    //TODO: CHANGE THIS WHEN SUBMITTING
+    std::ofstream destFile(destination, ios::binary);
+    if (!destFile.is_open()) {
+        std::cerr << "Error: Unable to open destination file." << std::endl;
+        return;
+    }
+
+    // Define a buffer size for reading/writing data
+    constexpr size_t bufferSize = 2048;
+    char buffer[bufferSize];
+
+    while (!source_file->eof() && !source_file->fail()) {
+        source_file->read(buffer, bufferSize);
+        std::streamsize bytesRead = source_file->gcount();
+
+        if (bytesRead > 0) {
+            destFile.write(buffer, bytesRead);
+        }
+
+        memset(buffer, 0, bufferSize);
+    }
+
+    if (source_file->fail() && !source_file->eof()) {
+        std::cerr << "Error occurred while reading the source file." << std::endl;
+    }
+
+    destFile.close();
+}
+
 // ############################################################
 //                      PROTOCOL FUNCTIONS
 // ############################################################
@@ -123,7 +164,7 @@ string send_udp_message(string message) {
     socklen_t addrlen;
     struct addrinfo hints, *res;
     struct sockaddr_in addr;
-    char buffer[99999];
+    char buffer[8192];
 
     fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
     if (fd==-1) exit(1);                /*error*/
@@ -139,7 +180,7 @@ string send_udp_message(string message) {
     if(n==-1) exit(1);                 /*error*/
 
     addrlen=sizeof(addr);
-    n=recvfrom(fd,buffer,99999,0, (struct sockaddr*) &addr, &addrlen);
+    n=recvfrom(fd,buffer, 8192, 0, (struct sockaddr*) &addr, &addrlen);
     if(n==-1) exit(1);                 /*error*/
 
     freeaddrinfo(res);
@@ -148,14 +189,16 @@ string send_udp_message(string message) {
     return buffer;
 }
 
-string send_tcp_message(string message) {
+string send_tcp_message(string message, ifstream* file) {
 
     int fd,errcode;
     ssize_t n;
     // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
     struct addrinfo hints,*res;
     // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
-    char buffer[128];
+    
+    const int server_awmser_size = 8192;
+    char server_awnser[server_awmser_size] = "";
 
     fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
     if (fd==-1) exit(1);                //error
@@ -171,16 +214,33 @@ string send_tcp_message(string message) {
     n=connect(fd,res->ai_addr,res->ai_addrlen);
     if(n==-1) exit(1);                  /*error*/
     
+
     n=write(fd, message.c_str(), message.size());
-    if(n==-1) exit(1);                  /*error*/
-    
-    n=read(fd,buffer,128);
+
+    //Send the message to the server
+    if (file != nullptr && file->is_open()) {
+        const int file_data_size = 2048;
+        char file_data[file_data_size] = "";
+
+
+        int bytes_read = 0;
+        while ((bytes_read = file->read(file_data, sizeof(file_data)).gcount()) > 0) {
+            
+            n=write(fd, file_data, bytes_read);
+            if(n==-1) exit(1);                  /*error*/
+
+            memset(file_data, 0, file_data_size);            // Clear the buffer
+        }
+        n=write(fd, "\n", 1);
+    }
+
+    n=read(fd, server_awnser, server_awmser_size);
     if(n==-1) exit(1);                  /*error*/
     
     freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     close(fd);
 
-    return buffer;
+    return server_awnser;
 }
 
 
@@ -242,7 +302,7 @@ void logout() {
 
     // Check if the command is valid
     if (current_uid.empty() || current_password.empty()) {
-        cout << "You should logged in first" << endl;
+        cout << "You should logged in first!" << endl;
         return;
     }
 
@@ -270,7 +330,7 @@ void unregister() {
 
     // Check if the command is valid
     if (current_uid.empty() || current_password.empty()) {
-        cout << "You should logged in first" << endl;
+        cout << "You should logged in first!" << endl;
         return;
     }
 
@@ -306,7 +366,13 @@ void exitt() {
     exit(0);
 };
 
-void open() {
+void openn() {
+
+    // Check if the user is logged in
+    if (current_uid.empty() || current_password.empty()) {
+        cout << "You should logged in first!" << endl;
+        return;
+    }
 
     // Check if the command is valid
     if (command.size() != 5) {
@@ -314,19 +380,21 @@ void open() {
         return;
     }
     
-    string name, fname, start_value,timeactive;
+    // Handling parameters
+    string name, fname, start_value, timeactive;
     name = command[1];
     fname = command[2];
     start_value = command[3];
     timeactive = command[4];
 
+    // Check if the parameters are valid
     if (name.length() > 10 || !isAlphanumeric(name)) {
-        cout << "open: password must be alphanumeric and have 8 digits" << endl;
+        cout << "open: name must be alphanumeric and have less or equal than 10 digits" << endl;
         return;
     }
 
     if (start_value.length() > 6 || !isNumeric(start_value)) {
-        cout << "open: start value must be numeric and " << endl;
+        cout << "open: start value must be numeric" << endl;
         return;
     }
 
@@ -335,23 +403,34 @@ void open() {
         return;
     }
 
-    string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + fsize + " " + fdata + "\n";
-    string response = send_tcp_message(request);
+    // Open file
+    string path = "assets/" + fname;                            //TODO: CHANGE THIS WHEN SUBMITTING
+    ifstream file(path, ios::binary);
+    if (!file.is_open()) {
+        std::cout << "open: file does not exist" << std::endl;
+        return;
+    }  
 
-    printf("%s\n", response.c_str());
-    string status = response.substr(0, 7);
-    printf("%s\n", status.c_str());
+    struct stat fileInfo;
+    if (stat(path.c_str(), &fileInfo) != 0) {
+        std::cerr << "Error accessing the image information." << std::endl;
+    }
 
-    if (status == "ROA NOK") {
+    string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + to_string(fileInfo.st_size) + " ";
+    string response = send_tcp_message(request, &file);
+
+    if (response == "ROA NOK\n") {
         cout << "auction could not be started" << endl;
-    } else if (status == "ROA NLG") {
+    } else if (response == "ROA NLG\n") {
         cout << "user is not logged in" << endl;
-    } else if (status == "ROA OK ") {
-        string aid = response.substr(8, 3);
-        cout << "AID =" + aid << endl;
+    } else if (response.length() == 11 && response.substr(0, 7) == "ROA OK ") {
+        create_file_copy(&file, fname);
+        cout << "Auction started with AID: " + response.substr(8, 3) << endl;
     } else {
         cout << "open: error" << endl;
     }
+
+    file.close();
 };
 
 void closee() {
@@ -367,7 +446,7 @@ void closee() {
     };
 
     string request = "CLS " + current_uid + " " + current_password + " "+ aid +"\n";
-    string response = send_tcp_message(request);
+    string response = send_tcp_message(request, nullptr);
 
     if (response == "RCL OK\n") {
         cout << "auction was closed" << endl;
@@ -447,7 +526,7 @@ int main(int argc, char** argv) {
         } else if (command[0]=="exit"){
             exitt();
         } else if (command[0]=="open"){
-            open();
+            openn();
         } else if (command[0]=="close"){
             closee();
         } else if (command[0]=="myauctions" || command[0] == "ma"){
