@@ -168,7 +168,7 @@ void receive_tcp_image(string message){
     // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
     struct addrinfo hints,*res;
     // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
-    char buffer[128];
+    char buffer[2048];
 
     fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
     if (fd==-1) exit(1);                //error
@@ -185,7 +185,7 @@ void receive_tcp_image(string message){
     
     n=write(fd, message.c_str(), message.size());
     if(n==-1) exit(1);                  /*error*/
-    n=read(fd,buffer,128);
+    n=read(fd,buffer,2048);
     if(n==-1) exit(1);                  /*error*/
 
     string response = buffer;
@@ -217,7 +217,7 @@ void receive_tcp_image(string message){
             cout<<"Error while creating the file";    
         FileName.write(buffer+i, n-(i+1));
         while(1){
-            n=read(fd,buffer,128);
+            n=read(fd,buffer,2048);
             if(n==-1) 
                 exit(1);                  /*error*/
             if(n==0)
