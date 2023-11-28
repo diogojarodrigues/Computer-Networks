@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include <string>      
+#include <fstream>
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -157,6 +159,53 @@ void create_file_copy(ifstream* source_file, const string& destination_filename)
 //                      PROTOCOL FUNCTIONS
 // ############################################################
 
+void receive_tcp_image(int fd){
+
+    ssize_t n;
+    char buffer[2048];
+    n=read(fd,buffer,2048);
+    if(n==-1) exit(1);                  /*error*/
+    string response = buffer;
+    string r = response.substr(0, 7);
+    if(r == "RSA NOK"){
+        cout << "asset does not exist" << endl;
+    }else if(r == "RSA OK "){
+        string fname, fsize;
+        int i=7;
+        int k=0;
+        while (1){
+            if(buffer[i]==' '){
+            k++;
+            i++;
+            }else if(k==0){
+                fname += buffer[i];
+                i++;
+            }else if(k==1){
+                fsize += buffer[i];
+                i++;
+            }
+            else if(k==2){
+                break;
+            }
+        }
+        fstream FileName;               
+        FileName.open(fname, ios::out);    
+        if (!FileName)
+            cout<<"Error while creating the file";    
+        FileName.write(buffer+i, n-(i+1));
+        while(1){
+            n=read(fd,buffer,2048);
+            if(n==-1) 
+                exit(1);                  /*error*/
+            if(n==0)
+                break;
+            FileName.write(buffer, n);
+        }
+        FileName.close();
+        cout << "asset was saved in file " << fname << " " << fsize << endl;
+    }
+}
+
 string send_udp_message(string message) {
     
     int fd,errcode; 
@@ -189,7 +238,7 @@ string send_udp_message(string message) {
     return buffer;
 }
 
-string send_tcp_message(string message, ifstream* file) {
+string send_tcp_message(string message, string type ="", ifstream* file) {
 
     int fd,errcode;
     ssize_t n;
@@ -209,7 +258,6 @@ string send_tcp_message(string message, ifstream* file) {
     
     errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     if(errcode!=0) exit(1);             /*error*/
-    
 
     n=connect(fd,res->ai_addr,res->ai_addrlen);
     if(n==-1) exit(1);                  /*error*/
@@ -417,7 +465,7 @@ void openn() {
     }
 
     string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + to_string(fileInfo.st_size) + " ";
-    string response = send_tcp_message(request, &file);
+    string response = send_tcp_message(request, "",&file);
 
     if (response == "ROA NOK\n") {
         cout << "auction could not be started" << endl;
@@ -494,9 +542,54 @@ void mybids() {
     } 
 };
 
-void list() {};
+void list() {
+    string request = "LST\n";
+    string response = send_udp_message(request);
+    string r = response.substr(0, 7);
+    if (r == "RLS NOK") {
+        cout << "no auction was yet started" << endl;
+        return;
+    } else if (r == "RLS OK ") {
+        string auctions= get_auctions_bids(response);   
+        cout << auctions ;
+        return;
+    } 
 
-void show_asset() {};
+};
+
+void show_asset() {
+    if (command.size()!=2) {
+        cout << "close: format not valid!" << endl;
+        return;
+    }
+    string aid;
+    aid = command[1];
+    if(aid.length()!=3 || !isNumeric(aid)){
+        cout << "close: aid must be numeric and have 3 digits" << endl;
+        return;
+    };
+
+    string request = "SAS " + aid +"\n";
+
+    send_tcp_message(request, "receive_image");  
+};
+
+void show_asset() {
+    if (command.size()!=2) {
+        cout << "close: format not valid!" << endl;
+        return;
+    }
+    string aid;
+    aid = command[1];
+    if(aid.length()!=3 || !isNumeric(aid)){
+        cout << "close: aid must be numeric and have 3 digits" << endl;
+        return;
+    };
+
+    string request = "SAS " + aid +"\n";
+
+    send_tcp_message(request, "receive_image");  
+};
 
 void bid() {};
 
