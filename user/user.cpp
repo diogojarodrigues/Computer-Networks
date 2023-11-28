@@ -135,7 +135,7 @@ string send_tcp_message(string message) {
     // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
     struct addrinfo hints,*res;
     // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
-    char buffer[128];
+    char buffer[2048];
 
     fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
     if (fd==-1) exit(1);                //error
