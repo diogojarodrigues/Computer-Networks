@@ -96,98 +96,12 @@ string get_auctions_bids(string response){
 //                      PROTOCOL FUNCTIONS
 // ############################################################
 
-string send_udp_message(string message) {
-    
-    int fd,errcode; 
+void receive_tcp_image(int fd){
+
     ssize_t n;
-    socklen_t addrlen;
-    struct addrinfo hints, *res;
-    struct sockaddr_in addr;
     char buffer[2048];
-
-    fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
-    if (fd==-1) exit(1);                /*error*/
-
-    memset(&hints,0,sizeof hints);
-    hints.ai_family=AF_INET;            //IPv4
-    hints.ai_socktype=SOCK_DGRAM;       //UDP socket
-    
-    errcode=getaddrinfo(SERVER, PORT, &hints, &res);
-    if(errcode!=0) exit(1);            /*error*/
-    
-    n=sendto(fd, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
-    if(n==-1) exit(1);                 /*error*/
-
-    addrlen=sizeof(addr);
-    n=recvfrom(fd,buffer,2048,0, (struct sockaddr*) &addr, &addrlen);
-    if(n==-1) exit(1);                 /*error*/
-
-    freeaddrinfo(res);
-    close(fd);
-
-    return buffer;
-}
-
-string send_tcp_message(string message) {
-
-    int fd,errcode;
-    ssize_t n;
-    // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
-    struct addrinfo hints,*res;
-    // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
-    char buffer[2048];
-
-    fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
-    if (fd==-1) exit(1);                //error
-    
-    memset(&hints,0,sizeof hints);
-    hints.ai_family=AF_INET;            //IPv4
-    hints.ai_socktype=SOCK_STREAM;      //TCP socket
-    
-    errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
-    if(errcode!=0) exit(1);             /*error*/
-
-    n=connect(fd,res->ai_addr,res->ai_addrlen);
-    if(n==-1) exit(1);                  /*error*/
-    
-    n=write(fd, message.c_str(), message.size());
-    if(n==-1) exit(1);                  /*error*/
-
-    n=read(fd,buffer,128);
-    if(n==-1) exit(1);                  /*error*/
-
-    freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
-    close(fd);
-
-    return buffer;
-}
-
-void receive_tcp_image(string message){
-    int fd,errcode;
-    ssize_t n;
-    // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
-    struct addrinfo hints,*res;
-    // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
-    char buffer[2048];
-
-    fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
-    if (fd==-1) exit(1);                //error
-    
-    memset(&hints,0,sizeof hints);
-    hints.ai_family=AF_INET;            //IPv4
-    hints.ai_socktype=SOCK_STREAM;      //TCP socket
-    
-    errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
-    if(errcode!=0) exit(1);             /*error*/
-
-    n=connect(fd,res->ai_addr,res->ai_addrlen);
-    if(n==-1) exit(1);                  /*error*/
-    
-    n=write(fd, message.c_str(), message.size());
-    if(n==-1) exit(1);                  /*error*/
     n=read(fd,buffer,2048);
     if(n==-1) exit(1);                  /*error*/
-
     string response = buffer;
     string r = response.substr(0, 7);
     if(r == "RSA NOK"){
@@ -227,8 +141,74 @@ void receive_tcp_image(string message){
         FileName.close();
         cout << "asset was saved in file " << fname << " " << fsize << endl;
     }
+}
+
+string send_udp_message(string message) {
+    
+    int fd,errcode; 
+    ssize_t n;
+    socklen_t addrlen;
+    struct addrinfo hints, *res;
+    struct sockaddr_in addr;
+    char buffer[2048];
+
+    fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
+    if (fd==-1) exit(1);                /*error*/
+
+    memset(&hints,0,sizeof hints);
+    hints.ai_family=AF_INET;            //IPv4
+    hints.ai_socktype=SOCK_DGRAM;       //UDP socket
+    
+    errcode=getaddrinfo(SERVER, PORT, &hints, &res);
+    if(errcode!=0) exit(1);            /*error*/
+    
+    n=sendto(fd, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
+    if(n==-1) exit(1);                 /*error*/
+
+    addrlen=sizeof(addr);
+    n=recvfrom(fd,buffer,2048,0, (struct sockaddr*) &addr, &addrlen);
+    if(n==-1) exit(1);                 /*error*/
+
+    freeaddrinfo(res);
+    close(fd);
+
+    return buffer;
+}
+
+string send_tcp_message(string message, string type ="") {
+
+    int fd,errcode;
+    ssize_t n;
+    // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
+    struct addrinfo hints,*res;
+    // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
+    char buffer[2048];
+
+    fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
+    if (fd==-1) exit(1);                //error
+    
+    memset(&hints,0,sizeof hints);
+    hints.ai_family=AF_INET;            //IPv4
+    hints.ai_socktype=SOCK_STREAM;      //TCP socket
+    
+    errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
+    if(errcode!=0) exit(1);             /*error*/
+
+    n=connect(fd,res->ai_addr,res->ai_addrlen);
+    if(n==-1) exit(1);                  /*error*/
+    
+    n=write(fd, message.c_str(), message.size());
+    if(n==-1) exit(1);                  /*error*/
+    if(type=="receive_image"){
+        receive_tcp_image(fd);
+    }else{
+        n=read(fd,buffer,2048);
+        if(n==-1) exit(1);                  /*error*/
+    }
     freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     close(fd);
+
+    return buffer;
 }
 
 
@@ -499,7 +479,7 @@ void show_asset() {
 
     string request = "SAS " + aid +"\n";
 
-    receive_tcp_image(request);    
+    send_tcp_message(request, "receive_image");  
 };
 
 void bid() {};
