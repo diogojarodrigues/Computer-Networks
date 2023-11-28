@@ -4,7 +4,8 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <string>
+#include <string>      
+#include <fstream>
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -68,7 +69,6 @@ bool isAlphanumeric(const std::string& str) {
 }
 
 string get_auctions_bids(string response){
-    int i=0;
     int k=1; // 1 and 3 in aid, 0 in status
     string final = response.substr(7, response.size()-7);
     string auctions="";
@@ -103,7 +103,7 @@ string send_udp_message(string message) {
     socklen_t addrlen;
     struct addrinfo hints, *res;
     struct sockaddr_in addr;
-    char buffer[99999];
+    char buffer[2048];
 
     fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
     if (fd==-1) exit(1);                /*error*/
@@ -119,7 +119,7 @@ string send_udp_message(string message) {
     if(n==-1) exit(1);                 /*error*/
 
     addrlen=sizeof(addr);
-    n=recvfrom(fd,buffer,99999,0, (struct sockaddr*) &addr, &addrlen);
+    n=recvfrom(fd,buffer,2048,0, (struct sockaddr*) &addr, &addrlen);
     if(n==-1) exit(1);                 /*error*/
 
     freeaddrinfo(res);
@@ -146,21 +146,89 @@ string send_tcp_message(string message) {
     
     errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     if(errcode!=0) exit(1);             /*error*/
-    
 
     n=connect(fd,res->ai_addr,res->ai_addrlen);
     if(n==-1) exit(1);                  /*error*/
     
     n=write(fd, message.c_str(), message.size());
     if(n==-1) exit(1);                  /*error*/
-    
+
     n=read(fd,buffer,128);
     if(n==-1) exit(1);                  /*error*/
-    
+
     freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     close(fd);
 
     return buffer;
+}
+
+void receive_tcp_image(string message){
+    int fd,errcode;
+    ssize_t n;
+    // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
+    struct addrinfo hints,*res;
+    // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
+    char buffer[128];
+
+    fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
+    if (fd==-1) exit(1);                //error
+    
+    memset(&hints,0,sizeof hints);
+    hints.ai_family=AF_INET;            //IPv4
+    hints.ai_socktype=SOCK_STREAM;      //TCP socket
+    
+    errcode=getaddrinfo("tejo.tecnico.ulisboa.pt", PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
+    if(errcode!=0) exit(1);             /*error*/
+
+    n=connect(fd,res->ai_addr,res->ai_addrlen);
+    if(n==-1) exit(1);                  /*error*/
+    
+    n=write(fd, message.c_str(), message.size());
+    if(n==-1) exit(1);                  /*error*/
+    n=read(fd,buffer,128);
+    if(n==-1) exit(1);                  /*error*/
+
+    string response = buffer;
+    string r = response.substr(0, 7);
+    if(r == "RSA NOK"){
+        cout << "asset does not exist" << endl;
+    }else if(r == "RSA OK "){
+        string fname, fsize;
+        int i=7;
+        int k=0;
+        while (1){
+            if(buffer[i]==' '){
+            k++;
+            i++;
+            }else if(k==0){
+                fname += buffer[i];
+                i++;
+            }else if(k==1){
+                fsize += buffer[i];
+                i++;
+            }
+            else if(k==2){
+                break;
+            }
+        }
+        fstream FileName;               
+        FileName.open(fname, ios::out);    
+        if (!FileName)
+            cout<<"Error while creating the file";    
+        FileName.write(buffer+i, n-(i+1));
+        while(1){
+            n=read(fd,buffer,128);
+            if(n==-1) 
+                exit(1);                  /*error*/
+            if(n==0)
+                break;
+            FileName.write(buffer, n);
+        }
+        FileName.close();
+        cout << "asset was saved in file " << fname << " " << fsize << endl;
+    }
+    freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
+    close(fd);
 }
 
 
@@ -417,7 +485,22 @@ void list() {
 
 };
 
-void show_asset() {};
+void show_asset() {
+    if (command.size()!=2) {
+        cout << "close: format not valid!" << endl;
+        return;
+    }
+    string aid;
+    aid = command[1];
+    if(aid.length()!=3 || !isNumeric(aid)){
+        cout << "close: aid must be numeric and have 3 digits" << endl;
+        return;
+    };
+
+    string request = "SAS " + aid +"\n";
+
+    receive_tcp_image(request);    
+};
 
 void bid() {};
 
