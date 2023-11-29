@@ -28,6 +28,6 @@ string send_udp_message(string message);
 
 void receive_tcp_image(int fd);
 
-string send_tcp_message(string message, type type, ifstream* file);
+string send_tcp_message(string message, type type=DEFAULT, ifstream* file=nullptr);
 
 #endif // NETWORK_FUNCTIONS_HPP
