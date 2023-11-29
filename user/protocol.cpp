@@ -6,15 +6,15 @@
 
 string send_udp_message(string message) {
     
-    int fd,errcode; 
-    ssize_t n;
+    int sockett,errcode; 
+    ssize_t aux;
     socklen_t addrlen;
     struct addrinfo hints, *res;
     struct sockaddr_in addr;
     char buffer[8192];
 
-    fd=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
-    if (fd==-1) exit(1);                /*error*/
+    sockett=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
+    if (sockett==-1) exit(1);                /*error*/
 
     memset(&hints,0,sizeof hints);
     hints.ai_family=AF_INET;            //IPv4
@@ -23,29 +23,32 @@ string send_udp_message(string message) {
     errcode=getaddrinfo(SERVER, PORT, &hints, &res);
     if(errcode!=0) exit(1);            /*error*/
     
-    n=sendto(fd, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
-    if(n==-1) exit(1);                 /*error*/
+    aux=sendto(sockett, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
+    if(aux==-1) exit(1);                 /*error*/
 
     addrlen=sizeof(addr);
-    n=recvfrom(fd,buffer, 8192, 0, (struct sockaddr*) &addr, &addrlen);
-    if(n==-1) exit(1);                 /*error*/
+    aux=recvfrom(sockett,buffer, 8192, 0, (struct sockaddr*) &addr, &addrlen);
+    if(aux==-1) exit(1);                 /*error*/
 
     freeaddrinfo(res);
-    close(fd);
+    close(sockett);
 
     return buffer;
 }
 
 /* ####################### TCP MESSAGE #######################  */
 
-void receive_tcp_image(int fd){
+void receive_tcp_image(int sockett){
 
-    ssize_t n;
+    ssize_t aux;
     char buffer[2048];
-    n=read(fd,buffer,2048);
-    if(n==-1) exit(1);                  /*error*/
+
+    aux=read(sockett,buffer,2048);
+    if(aux==-1) exit(1);                  /*error*/
+    
     string response = buffer;
     string r = response.substr(0, 7);
+    
     if(r == "RSA NOK"){
         cout << "asset does not exist" << endl;
     }else if(r == "RSA OK "){
@@ -71,24 +74,45 @@ void receive_tcp_image(int fd){
         FileName.open(fname, ios::out);    
         if (!FileName)
             cout<<"Error while creating the file";    
-        FileName.write(buffer+i, n-(i+1));
+        FileName.write(buffer+i, aux-(i+1));
         while(1){
-            n=read(fd,buffer,2048);
-            if(n==-1) 
+            aux=read(sockett,buffer,2048);
+            if(aux==-1) 
                 exit(1);                  /*error*/
-            if(n==0)
+            if(aux==0)
                 break;
-            FileName.write(buffer, n);
+            FileName.write(buffer, aux);
         }
         FileName.close();
         cout << "asset was saved in file " << fname << " " << fsize << endl;
     }
 }
 
-string send_tcp_message(string message, string type, ifstream* file) {
+void send_tcp_image(int sockett, ifstream* file) {
 
-    int fd,errcode;
-    ssize_t n;
+    if (file != nullptr && file->is_open()) {
+        const int file_data_size = 2048;
+        char file_data[file_data_size] = "";
+
+        int bytes_read = 0;
+        int aux = 0;
+        
+        while ((bytes_read = file->read(file_data, sizeof(file_data)).gcount()) > 0) {
+            
+            aux=write(sockett, file_data, bytes_read);
+            if(aux==-1) exit(1);                  /*error*/
+
+            memset(file_data, 0, file_data_size);            // Clear the buffer
+        }
+
+        aux=write(sockett, "\aux", 1);
+        if(aux==-1) exit(1);                  /*error*/
+    }
+}
+
+string send_tcp_message(string message, type type, ifstream* file) {
+
+    int sockett, aux;
     // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
     struct addrinfo hints,*res;
     // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
@@ -96,44 +120,46 @@ string send_tcp_message(string message, string type, ifstream* file) {
     const int server_awmser_size = 8192;
     char server_awnser[server_awmser_size] = "";
 
-    fd=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
-    if (fd==-1) exit(1);                //error
+    // Initializing connection
+    sockett=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
+    if (sockett==-1) exit(1);                //error
     
     memset(&hints,0,sizeof hints);
-    hints.ai_family=AF_INET;            //IPv4
-    hints.ai_socktype=SOCK_STREAM;      //TCP socket
+    hints.ai_family=AF_INET;                //IPv4
+    hints.ai_socktype=SOCK_STREAM;          //TCP socket
     
-    errcode=getaddrinfo(SERVER, PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
-    if(errcode!=0) exit(1);             /*error*/
+    aux=getaddrinfo(SERVER, PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
+    if(aux!=0) exit(1);                     /*error*/
 
-    n=connect(fd,res->ai_addr,res->ai_addrlen);
-    if(n==-1) exit(1);                  /*error*/
+    aux=connect(sockett,res->ai_addr,res->ai_addrlen);
+    if(aux==-1) exit(1);                    /*error*/
     
+    printf("message: %s\n", message.c_str());
+    printf("message size: %lu\n", message.size());
+    printf("%d", message[message.size()-1]);
 
-    n=write(fd, message.c_str(), message.size());
+    //Sending message
+    aux=write(sockett, message.c_str(), message.size());
+    if(aux==-1) exit(1);                    /*error*/           //TODO: TEMOS DE MUDAR DEPOIS ESTES ERROS
 
-    //Send the message to the server
-    if (file != nullptr && file->is_open()) {
-        const int file_data_size = 2048;
-        char file_data[file_data_size] = "";
-
-
-        int bytes_read = 0;
-        while ((bytes_read = file->read(file_data, sizeof(file_data)).gcount()) > 0) {
-            
-            n=write(fd, file_data, bytes_read);
-            if(n==-1) exit(1);                  /*error*/
-
-            memset(file_data, 0, file_data_size);            // Clear the buffer
-        }
-        n=write(fd, "\n", 1);
+    if (type == RECEIVE_TCP_IMAGE) {
+        printf("Receiving image\n");
+        receive_tcp_image(sockett);
+    } else if (type == SEND_TCP_IMAGE) {
+        printf("Sending image\n");
+        send_tcp_image(sockett, file);
     }
 
-    n=read(fd, server_awnser, server_awmser_size);
-    if(n==-1) exit(1);                  /*error*/
+    //Receiving message
+    aux=read(sockett, server_awnser, server_awmser_size);
+    if(aux==-1) exit(1);                /*error*/
+
+    printf("%s\n", server_awnser);
+
     
+    // Closing connection
     freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
-    close(fd);
+    close(sockett);
 
     return server_awnser;
 }

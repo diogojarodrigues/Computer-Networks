@@ -52,7 +52,7 @@ void openn() {
     }
 
     string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + to_string(fileInfo.st_size) + " ";
-    string response = send_tcp_message(request, "", &file);
+    string response = send_tcp_message(request, SEND_TCP_IMAGE, &file);
 
     if (response == "ROA NOK\n") {
         cout << "auction could not be started" << endl;

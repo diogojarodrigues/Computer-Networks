@@ -18,10 +18,16 @@
 
 using namespace std;
 
+enum type {
+    RECEIVE_TCP_IMAGE,
+    SEND_TCP_IMAGE,
+    DEFAULT
+};
+
 string send_udp_message(string message);
 
 void receive_tcp_image(int fd);
 
-string send_tcp_message(string message, string type, ifstream* file);
+string send_tcp_message(string message, type type, ifstream* file);
 
 #endif // NETWORK_FUNCTIONS_HPP

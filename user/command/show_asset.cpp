@@ -5,6 +5,7 @@ void show_asset() {
         cout << "close: format not valid!" << endl;
         return;
     }
+
     string aid;
     aid = command[1];
     if(aid.length()!=3 || !isNumeric(aid)){
@@ -14,5 +15,5 @@ void show_asset() {
 
     string request = "SAS " + aid +"\n";
 
-    send_tcp_message(request, "receive_image", nullptr);  
+    send_tcp_message(request, RECEIVE_TCP_IMAGE, nullptr);  
 };

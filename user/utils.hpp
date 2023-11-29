@@ -26,12 +26,6 @@
 
 using namespace std;
 
-// const enum {
-//     RECEIVE_TCP_IMAGE,
-//     SEND_TCP_IMAGE,
-//     DEFAULT
-// };
-
 extern vector<string> command;
 extern string current_uid;
 extern string current_password;
