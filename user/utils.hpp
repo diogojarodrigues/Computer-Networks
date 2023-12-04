@@ -4,7 +4,6 @@
 #include "./protocol.hpp"
 
 #include <string>
-#include <fstream>
 #include <iostream>
 #include <cctype>
 #include <vector>
@@ -13,6 +12,8 @@
 #include <unordered_set>
 #include <sstream>
 #include <fstream>
+#include <cstring>
+
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -22,7 +23,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <cstring>
 
 using namespace std;
 
