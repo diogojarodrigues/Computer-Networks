@@ -2,20 +2,20 @@
 #define COMMANDS_SERVER_HPP
 
 // ################ UDP COMMANDS ################
-void login();
-void logout();
-void unregister();
-void my_auctions();
-void my_bids();
-void list();
-void show_record();
+void login(string request);
+void logout(string request);
+void unregister(string request);
+void my_auctions(string request);
+void my_bids(string request);
+void list(string request);
+void show_record(string request);
 
 
 // ################ TCP COMMANDS ################
-void openn();
-void closee();
-void show_asset();
-void bid();
+void openn(string request);
+void closee(string request);
+void show_asset(string request);
+void bid(string request);
 
 
 #endif // COMMANDS_SERVER_HPP

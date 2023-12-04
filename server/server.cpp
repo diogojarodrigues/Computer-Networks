@@ -3,24 +3,34 @@
 void handle_udp_message() {
 
     string request = read_udp_message();
+
+    if (
+        request.length() > 21
+        || request.length() < 3
+        || request[request.size() - 1] != '\n'
+    ) {
+        printf("invalid udp command\n");
+        sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+        return;
+    }
+
     string opcode = request.substr(0, 3);
-    
     printf("received UDP request: %s\n", request.c_str());
 
     if (opcode == "LIN") {
-        login();
+        login(request);
     } else if (opcode == "LOU") {
-        logout();
+        logout(request);
     } else if (opcode == "UNR") {
-        unregister();
+        unregister(request);
     } else if (opcode == "LMA") {
-        my_auctions();
+        my_auctions(request);
     } else if (opcode == "LMB") {
-        my_bids();
+        my_bids(request);
     } else if (opcode == "LST") {
-        list();
+        list(request);
     } else if (opcode == "SRC") {
-        show_record();
+        show_record(request);
     } else {
         printf("invalid udp command\n");
     }
@@ -28,6 +38,7 @@ void handle_udp_message() {
 }
 
 void handle_tcp_message() {
+    //TODO: Ainda não testei o TCP
     printf("connection tcp received\n");
 
     char buffer[2048];
@@ -85,17 +96,11 @@ int main(int argc, char** argv) {
         // Use select to monitor sockets
         int max_sd = (udp_socket > tcp_socket) ? udp_socket : tcp_socket;
         
-        printf("max_sd: %d\n", max_sd);
         int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
-        printf("activity: %d\n", activity);
-
         if (activity < 0) {
             printf("select error\n");
             exit(-1);
         }
-
-
-        printf("connection received\n");
 
         //If UDP socket is ready
         if (FD_ISSET(udp_socket, &readfds)) {

@@ -31,7 +31,7 @@ int initialize_udp_socket() {
 }
 
 string read_udp_message() {
-    int aux, buffer_size = 2048;
+    int aux, buffer_size = 21;                  //UDP messages are at most 20 bytes long
     char buffer[buffer_size];
 
     udp_addrlen = sizeof(udp_addr);
