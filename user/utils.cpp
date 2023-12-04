@@ -67,156 +67,40 @@ void print_auctions(string auctions){
         }
 }
 
-string bid_record(string message){
-    //"RRC OK 104010 test DONT_READ_ME.txt 1 2023-11-24 20:27:39 10000 B 102484 123 2023-11-24 20:34:35 416 E 2023-11-24 23:14:19 10000"
-    //host_UID auction_name asset_fname start_value start_date-time timeactive B bidder_UID bid_value bid_date-time bid_sec_time]* [ E end_date-time end_sec_time]
-    message = message.substr(7, message.size()-7);
-    int counter=0;
-    int already_write=0;
-    char type = 'C';
-    string bid_record="";
-    for(char c:message){
-        if(type=='C'){
-            if(c==' '){
-                counter++;
-                bid_record += "   ";
-                already_write=0;
-                if(counter==7){
-                    bid_record += "\n";
-                    type='B';
-                    counter=-1;
-                }
-                continue;
-            }
-            if(counter==0){
-                if(!already_write){
-                    bid_record +="Host UID:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            if(counter==1){
-                if(!already_write){
-                    bid_record +="Auction name:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            if(counter==2){
-                if(!already_write){
-                    bid_record +="Asset filename:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            if(counter==3){
-                if(!already_write){
-                    bid_record +="Start value:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            if(counter==4){
-                if(!already_write){
-                    bid_record +="Start date-time:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            if(counter==5){
-                bid_record += c; 
-            }
-            if (counter==6){
-                if(!already_write){
-                    bid_record +="Time active: ";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
 
-        }if(type=='B'){
-            if(c==' '){
-                if(counter==-1){
-                    counter=0;
-                    continue;
-                }
-                counter++;
-                bid_record += "   ";
-                already_write=0;
-                if(counter==5){
-                    bid_record += "\n";
-                    counter=0;
-                }
-                continue;
-            }
-            else if(counter==0 && c=='B'){
-                counter=-1;
-            }
-            else if(counter==0 && c=='E'){
-                type='E';
-                counter=-1;
-            }
-            else if(counter==1){
-                if(!already_write){
-                    bid_record +="Bidder UID:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            else if(counter==2){
-                if(!already_write){
-                    bid_record +="Bid value:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            else if(counter==3){
-                if(!already_write){
-                    bid_record +="Bid date-time:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            else if (counter==4){
-                if(!already_write){
-                    bid_record +="Bid sec time:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-        }if(type=='E'){
-            if(c==' '){
-                if(counter==-1){
-                    counter=0;
-                    continue;
-                }
-                counter++;
-                bid_record += "   ";
-                already_write=0;
-                if(counter==3){
-                    bid_record += "\n";
-                    counter=0;
-                }
-                continue;
-            }
-            else if(counter==0){
-                if(!already_write){
-                    bid_record +="End date-time:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
-            else if(counter==1){
-                if(!already_write){
-                    bid_record +="End sec time:";
-                    already_write=1;
-                }
-                bid_record += c; 
-            }
+string bid_record(string messages){
+    vector<string> bid_records;
+    string message;
+    messages = messages.substr(7, messages.size()-7);
+    for(char c:messages){
+        if(c==' ' or c=='\n'){
+            bid_records.push_back(message);
+            message="";
         }
-
+        else
+            message += c;
+    }
+    string bid_record="";
+    bid_record += "Host UID:" + bid_records[0] + "  Auction name:" + bid_records[1] + "  Asset filename:" + bid_records[2] + "  Start value:" + bid_records[3] + "  Start date-time:" + bid_records[4] + ' ' +bid_records[5] + "  Time active:" + bid_records[6] + "\n";
+    unsigned long int i=7;
+    if(i==bid_records.size())
+        return bid_record;
+    while (true)
+    {
+       if(bid_records[i]=="B"){
+           bid_record += "Bidder UID:" + bid_records[i+1] + " Bid value:" + bid_records[i+2] + " Bid date-time:" + bid_records[i+3] + bid_records[i+4] + " Bid sec time:" + bid_records[i+5] + "\n";
+           i+=6;
+       }
+       else if(bid_records[i]=="E"){
+           bid_record += "End date-time:" + bid_records[i+1] + bid_records[i+2]+ " End sec time:" + bid_records[i+3] + "\n";
+           break;
+       }else if(i>=bid_records.size()){
+           break;
+       }
     }
     return bid_record;
+    
+
 }
 
 void create_file_copy(ifstream* source_file, const string& destination_filename) {

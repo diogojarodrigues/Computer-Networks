@@ -24,6 +24,9 @@ enum type {
     DEFAULT
 };
 
+extern const char* port;
+extern const char* server;
+
 string send_udp_message(string message);
 
 void receive_tcp_image(int fd);
