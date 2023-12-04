@@ -110,7 +110,7 @@ void send_tcp_image(int sockett, ifstream* file) {
     }
 }
 
-string send_tcp_message(string message, type type=DEFAULT , ifstream* file=nullptr) {
+string send_tcp_message(string message, type type=DEFAULT, ifstream* file=nullptr) {
 
     int sockett, aux;
     // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?

@@ -67,6 +67,158 @@ void print_auctions(string auctions){
         }
 }
 
+string bid_record(string message){
+    //"RRC OK 104010 test DONT_READ_ME.txt 1 2023-11-24 20:27:39 10000 B 102484 123 2023-11-24 20:34:35 416 E 2023-11-24 23:14:19 10000"
+    //host_UID auction_name asset_fname start_value start_date-time timeactive B bidder_UID bid_value bid_date-time bid_sec_time]* [ E end_date-time end_sec_time]
+    message = message.substr(7, message.size()-7);
+    int counter=0;
+    int already_write=0;
+    char type = 'C';
+    string bid_record="";
+    for(char c:message){
+        if(type=='C'){
+            if(c==' '){
+                counter++;
+                bid_record += "   ";
+                already_write=0;
+                if(counter==7){
+                    bid_record += "\n";
+                    type='B';
+                    counter=-1;
+                }
+                continue;
+            }
+            if(counter==0){
+                if(!already_write){
+                    bid_record +="Host UID:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            if(counter==1){
+                if(!already_write){
+                    bid_record +="Auction name:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            if(counter==2){
+                if(!already_write){
+                    bid_record +="Asset filename:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            if(counter==3){
+                if(!already_write){
+                    bid_record +="Start value:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            if(counter==4){
+                if(!already_write){
+                    bid_record +="Start date-time:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            if(counter==5){
+                bid_record += c; 
+            }
+            if (counter==6){
+                if(!already_write){
+                    bid_record +="Time active: ";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+
+        }if(type=='B'){
+            if(c==' '){
+                if(counter==-1){
+                    counter=0;
+                    continue;
+                }
+                counter++;
+                bid_record += "   ";
+                already_write=0;
+                if(counter==5){
+                    bid_record += "\n";
+                    counter=0;
+                }
+                continue;
+            }
+            else if(counter==0 && c=='B'){
+                counter=-1;
+            }
+            else if(counter==0 && c=='E'){
+                type='E';
+                counter=-1;
+            }
+            else if(counter==1){
+                if(!already_write){
+                    bid_record +="Bidder UID:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            else if(counter==2){
+                if(!already_write){
+                    bid_record +="Bid value:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            else if(counter==3){
+                if(!already_write){
+                    bid_record +="Bid date-time:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            else if (counter==4){
+                if(!already_write){
+                    bid_record +="Bid sec time:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+        }if(type=='E'){
+            if(c==' '){
+                if(counter==-1){
+                    counter=0;
+                    continue;
+                }
+                counter++;
+                bid_record += "   ";
+                already_write=0;
+                if(counter==3){
+                    bid_record += "\n";
+                    counter=0;
+                }
+                continue;
+            }
+            else if(counter==0){
+                if(!already_write){
+                    bid_record +="End date-time:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+            else if(counter==1){
+                if(!already_write){
+                    bid_record +="End sec time:";
+                    already_write=1;
+                }
+                bid_record += c; 
+            }
+        }
+
+    }
+    return bid_record;
+}
+
 void create_file_copy(ifstream* source_file, const string& destination_filename) {
 
     source_file->clear(); // Clear any error flags that might affect reading
