@@ -1,5 +1,5 @@
-#ifndef NETWORK_FUNCTIONS_HPP
-#define NETWORK_FUNCTIONS_HPP
+#ifndef PROTOCOL_HPP
+#define PROTOCOL_HPP
 
 #include <string>
 #include <iostream>
@@ -10,11 +10,11 @@
 #include <unistd.h>
 #include <cstring>
 
-// #define PORT "58097"                     //TODO: UNCOMENT WHEN SUBMITTING
-// #define PORT "localhost"                 //TODO: UNCOMENT WHEN SUBMITTING
+#define PORT "58098"                            //TODO: UNCOMENT WHEN SUBMITTING
+#define SERVER "localhost"                      //TODO: UNCOMENT WHEN SUBMITTING
 
-#define PORT "58011"                        //TODO: CHANGE THIS WHEN SUBMITTING
-#define SERVER "tejo.tecnico.ulisboa.pt"    //TODO: CHANGE THIS WHEN SUBMITTING
+// #define PORT "58011"                         //TODO: CHANGE THIS WHEN SUBMITTING
+// #define SERVER "tejo.tecnico.ulisboa.pt"     //TODO: CHANGE THIS WHEN SUBMITTING
 
 using namespace std;
 
@@ -30,4 +30,4 @@ void receive_tcp_image(int fd);
 
 string send_tcp_message(string message, type type, ifstream* file);
 
-#endif // NETWORK_FUNCTIONS_HPP
+#endif // PROTOCOL_HPP

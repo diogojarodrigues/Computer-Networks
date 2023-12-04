@@ -22,7 +22,7 @@ string send_udp_message(string message) {
     
     errcode=getaddrinfo(SERVER, PORT, &hints, &res);
     if(errcode!=0) exit(1);            /*error*/
-    
+
     aux=sendto(sockett, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
     if(aux==-1) exit(1);                 /*error*/
 
