@@ -1,7 +1,5 @@
 #include "protocol.hpp"
 
-//TODO: Create a function to send a tcp image, just like we have to receive a tcp image
-
 /* ####################### UDP MESSAGE #######################  */
 
 string send_udp_message(string message) {

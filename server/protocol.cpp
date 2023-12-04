@@ -1,7 +1,13 @@
 #include "protocol.hpp"
 
-/* ################### UDP ################### */
+/* ################### GLOBAL VARIABLES ################### */
 
+int udp_socket, tcp_socket;
+struct addrinfo *udp_res, *tcp_res;
+struct sockaddr_in udp_addr, tcp_addr;
+socklen_t udp_addrlen, tcp_addrlen;
+
+/* ################### UDP ################### */
 
 int initialize_udp_socket() {
     struct addrinfo hints;
@@ -67,15 +73,15 @@ int initialize_tcp_socket() {
 }
 
 string read_tcp_message() {
+    //TODO: A função está sus, acho que não se usa recvfrom para TCP
     int aux, buffer_size = 2048;
     char buffer[buffer_size];
 
     tcp_addrlen = sizeof(tcp_addr);
-    aux = recvfrom(tcp_socket, buffer, buffer_size, 0, (struct sockaddr*) &tcp_addr, &tcp_addrlen);
+    aux = recvfrom(tcp_socket, buffer, buffer_size, 0, (struct sockaddr*) &tcp_addr, &tcp_addrlen); //TODO: Check if this is correct 
     if (aux == -1) return "";
 
     return buffer;
-
 }
 
 void close_tcp_socket() {
