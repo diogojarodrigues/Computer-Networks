@@ -14,7 +14,17 @@ void show_record() {
     };
 
     string request = "SRC " + aid +"\n";
-    string response = send_tcp_message(request, DEFAULT, nullptr); 
+    string response = send_udp_message(request); 
 
-    printf("%s\n", response.c_str()); 
+    string r=response.substr(0, 7);
+    if(r=="RRC NOK"){
+        cout << "show_record: asset does not exist" << endl;
+        return;
+    }
+    else if(r=="RRC OK "){
+        string auctions = bid_record(response);
+        cout << auctions;
+    }
+    else
+        cout << "show_record: error" << endl;
 };

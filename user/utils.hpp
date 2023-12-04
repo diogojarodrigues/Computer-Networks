@@ -35,5 +35,6 @@ bool isAlphanumeric(const std::string& str);
 std::string get_auctions_bids(std::string response);
 void print_auctions(std::string auctions);
 void create_file_copy(std::ifstream* source_file, const std::string& destination_filename);
+string bid_record(string message);
 
 #endif // UTILS_HPP
