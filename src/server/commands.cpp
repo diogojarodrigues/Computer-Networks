@@ -17,7 +17,7 @@ void login(string request) {
 
     string uid = request.substr(4, 6);
     string password = request.substr(11, 8);
-    string user_folder_path = "./server/data/users/" + uid + "/";
+    string user_folder_path = "./src/server/data/users/" + uid + "/";
     
     if (fs::exists(user_folder_path)) {                     //User exists
         printf("user %s exists\n", uid.c_str());
@@ -76,7 +76,7 @@ void logout(string request, bool unregister) {
 
     string uid = request.substr(4, 6);
     string password = request.substr(11, 8);
-    string user_folder_path = "./server/data/users/" + uid + "/";
+    string user_folder_path = "./src/server/data/users/" + uid + "/";
 
     if (fs::exists(user_folder_path)) {
 

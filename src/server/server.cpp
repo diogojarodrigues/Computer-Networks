@@ -15,7 +15,7 @@ void handle_udp_message() {
     }
 
     string opcode = request.substr(0, 3);
-    printf("received UDP request: %s\n", request.c_str());
+    printf("received UDP request: %s", request.c_str());
 
     if (opcode == "LIN") {
         login(request);
@@ -32,9 +32,10 @@ void handle_udp_message() {
     } else if (opcode == "SRC") {
         show_record(request);
     } else {
-        printf("invalid udp command\n");
+        cout << "invalid udp command\n";
     }
 
+    cout << endl;
 }
 
 void handle_tcp_message() {

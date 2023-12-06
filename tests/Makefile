@@ -4,7 +4,7 @@ CXXFLAGS = -std=c++17 -Wall
 TARGET_DIR = ..
 TARGET = $(TARGET_DIR)/test
 
-SRCS := $(wildcard *.cpp) ../src/user/protocol.cpp
+SRCS := $(wildcard *.cpp ../src/user/protocol.cpp)
 OBJ_DIR = bin
 OBJS := $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(notdir $(SRCS)))
 
