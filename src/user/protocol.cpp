@@ -46,10 +46,8 @@ void receive_tcp_image(int sockett){
 
     aux=read(sockett,buffer,2048);
     if(aux==-1) exit(1);                  /*error*/
-    
     string response = buffer;
     string r = response.substr(0, 7);
-    
     if(r == "RSA NOK"){
         cout << "asset does not exist" << endl;
     }else if(r == "RSA OK "){
@@ -73,8 +71,10 @@ void receive_tcp_image(int sockett){
         }
         fstream FileName;               
         FileName.open(fname, ios::out);    
-        if (!FileName)
-            cout<<"Error while creating the file";    
+        if (!FileName){
+            cout<<"Error while creating the file";
+            return;
+        }    
         FileName.write(buffer+i, aux-(i+1));
         while(1){
             aux=read(sockett,buffer,2048);

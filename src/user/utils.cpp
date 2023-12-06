@@ -83,20 +83,19 @@ string bid_record(string messages){
     string bid_record="";
     bid_record += "Host UID:" + bid_records[0] + "  Auction name:" + bid_records[1] + "  Asset filename:" + bid_records[2] + "  Start value:" + bid_records[3] + "  Start date-time:" + bid_records[4] + ' ' +bid_records[5] + "  Time active:" + bid_records[6] + "\n";
     unsigned long int i=7;
-    if(i==bid_records.size())
-        return bid_record;
     while (true)
     {
-       if(bid_records[i]=="B"){
+        if(i>=bid_records.size()){
+           break;
+        }
+        if(bid_records[i]=="B"){
            bid_record += "Bidder UID:" + bid_records[i+1] + " Bid value:" + bid_records[i+2] + " Bid date-time:" + bid_records[i+3] + bid_records[i+4] + " Bid sec time:" + bid_records[i+5] + "\n";
            i+=6;
-       }
-       else if(bid_records[i]=="E"){
+        }
+        else if(bid_records[i]=="E"){
            bid_record += "End date-time:" + bid_records[i+1] + bid_records[i+2]+ " End sec time:" + bid_records[i+3] + "\n";
            break;
-       }else if(i>=bid_records.size()){
-           break;
-       }
+        }
     }
     return bid_record;
     
