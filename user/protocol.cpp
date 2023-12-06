@@ -1,5 +1,10 @@
 #include "protocol.hpp"
 
+//TODO: Create a function to send a tcp image, just like we have to receive a tcp image
+
+const char* server;
+const char* port;
+
 /* ####################### UDP MESSAGE #######################  */
 
 string send_udp_message(string message) {
@@ -17,8 +22,9 @@ string send_udp_message(string message) {
     memset(&hints,0,sizeof hints);
     hints.ai_family=AF_INET;            //IPv4
     hints.ai_socktype=SOCK_DGRAM;       //UDP socket
-    
-    errcode=getaddrinfo(SERVER, PORT, &hints, &res);
+
+
+    errcode=getaddrinfo(server, port, &hints, &res);
     if(errcode!=0) exit(1);            /*error*/
 
     aux=sendto(sockett, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
@@ -126,7 +132,7 @@ string send_tcp_message(string message, type type=DEFAULT, ifstream* file=nullpt
     hints.ai_family=AF_INET;                //IPv4
     hints.ai_socktype=SOCK_STREAM;          //TCP socket
     
-    aux=getaddrinfo(SERVER, PORT, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
+    aux=getaddrinfo(server, port, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     if(aux!=0) exit(1);                     /*error*/
 
     aux=connect(sockett,res->ai_addr,res->ai_addrlen);

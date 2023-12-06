@@ -1,5 +1,4 @@
 #include "./utils.hpp"
-
 #include "./header/login.hpp"
 #include "./header/logout.hpp"
 #include "./header/unregister.hpp"
@@ -13,6 +12,7 @@
 #include "./header/bid.hpp"
 #include "./header/show_record.hpp"
 #include "./header/show_user.hpp"
+#include "./protocol.hpp"
 
 void get_input(vector<string>* command) {
     string line;
@@ -31,6 +31,30 @@ void get_input(vector<string>* command) {
 }
 
 int main(int argc, char** argv) {
+    server =SERVER;
+    port =PORT;
+    if(argc==3){
+        if(!strcmp(argv[1],"-n")){
+            server = (const char*) argv[2];
+        }
+        else if(!strcmp(argv[1],"-p")){
+            port = (const char*)argv[2];
+        }
+    }if(argc==5){
+        if(!strcmp(argv[1],"-n")){
+            server = (const char*)argv[2];
+        }
+        if(!strcmp(argv[3],"-p")){
+            port = (const char*)argv[4];
+        }
+        if(!strcmp(argv[1],"-p")){
+            port = (const char*)argv[2];
+        }
+        if(!strcmp(argv[3],"-n")){
+            server = (const char*)argv[4];
+        }
+    }
+    
 
     while (true) {
         
