@@ -39,14 +39,19 @@ bool isPassword(const string str) {
     return isAlphanumeric(str);
 }
 
-bool folderExists(const string folderPath, bool isUser) {
-    string path = "data/";
-    if (isUser) {
-        path += "users/" + folderPath;
-    } else {
-        path += "auctions" + folderPath;
+bool passwordsMatch(const string path, const string password) {
+
+    std::ifstream inputPassFile(path);
+    if (!inputPassFile.is_open()) {
+        printf("error opening pass.txt\n");
+        sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+        exit(-1);
     }
 
-    // return fs::exists(folderPath) && fs::is_directory(folderPath);
-    return true;
+    //check if password is correct
+    string correctPassword;
+    inputPassFile >> correctPassword;
+    inputPassFile.close();
+
+    return password == correctPassword;
 }

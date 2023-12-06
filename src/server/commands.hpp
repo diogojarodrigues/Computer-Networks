@@ -3,8 +3,7 @@
 
 // ################ UDP COMMANDS ################
 void login(string request);
-void logout(string request);
-void unregister(string request);
+void logout(string request, bool unregister = false);
 void my_auctions(string request);
 void my_bids(string request);
 void list(string request);

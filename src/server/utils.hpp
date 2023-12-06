@@ -4,9 +4,11 @@
 #include "./protocol.hpp"
 #include "./commands.hpp"
 
-#include <filesystem> // Include the header for filesystem operations
+#include <filesystem>
 #include <string>
 #include <cstdio>
+#include <iostream>
+#include <fstream>
 
 #include <iostream>
 #include <filesystem>
@@ -20,8 +22,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+namespace fs = std::filesystem;
+
 bool isUid(const string str);
 bool isPassword(const string str);
-bool folderExists(const string folderPath, bool isUser);
+bool passwordsMatch(const string path, const string password);
 
 #endif // UTILS_SERVER_HPP

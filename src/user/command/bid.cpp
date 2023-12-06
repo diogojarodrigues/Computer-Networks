@@ -1,6 +1,5 @@
 #include "../header/bid.hpp"
 
-
 void bid() {
     if(command.size() != 3) {
         cout << "Invalid command\n";

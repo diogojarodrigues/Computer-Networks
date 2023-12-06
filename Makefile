@@ -1,13 +1,17 @@
-.PHONY: all server user
+.PHONY: all server user tests
 
-all: server user
+all: server user tests
 
 server:
-	$(MAKE) -C server
+	$(MAKE) -C src/server
 
 user:
-	$(MAKE) -C user
+	$(MAKE) -C src/user
+
+tests:
+	$(MAKE) -C tests
 
 clean:
-	$(MAKE) -C server clean
-	$(MAKE) -C user clean
+	$(MAKE) -C src/server clean
+	$(MAKE) -C src/user clean
+	$(MAKE) -C tests clean

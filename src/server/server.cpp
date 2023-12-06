@@ -22,7 +22,7 @@ void handle_udp_message() {
     } else if (opcode == "LOU") {
         logout(request);
     } else if (opcode == "UNR") {
-        unregister(request);
+        logout(request, true);
     } else if (opcode == "LMA") {
         my_auctions(request);
     } else if (opcode == "LMB") {
@@ -38,7 +38,7 @@ void handle_udp_message() {
 }
 
 void handle_tcp_message() {
-    //TODO: Ainda não testei o TCP
+    //TODO: Ainda não testei o TCP a 100%
     printf("connection tcp received\n");
 
     char buffer[2048];
