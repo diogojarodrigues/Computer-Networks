@@ -1,0 +1,6 @@
+.DS_Store
+server.out
+user.out
+*.o
+*.out
+bin/
