@@ -43,50 +43,54 @@ void receive_tcp_image(int sockett){
 
     ssize_t aux;
     char buffer[2048];
-
-    aux=read(sockett,buffer,2048);
-    if(aux==-1) exit(1);                  /*error*/
-    string response = buffer;
-    string r = response.substr(0, 7);
-    if(r == "RSA NOK"){
-        cout << "asset does not exist" << endl;
-    }else if(r == "RSA OK "){
-        string fname, fsize;
-        int i=7;
-        int k=0;
-        while (1){
-            if(buffer[i]==' '){
+    int i=0;
+    int k=0;
+    string response, fname, fsize;
+    while (1){
+        aux=read(sockett,buffer,1);
+        if(aux==-1) exit(1);
+        if (buffer[i]==' ' || buffer[i]=='\n'){
             k++;
-            i++;
-            }else if(k==0){
-                fname += buffer[i];
-                i++;
-            }else if(k==1){
-                fsize += buffer[i];
-                i++;
+            if(k==2 && response == "RSA NOK" ){
+                cout << "asset does not exist" << endl;
+                return;
             }
-            else if(k==2){
-                break;
+            if(k==1){
+                response+=' ';
             }
+            continue;
         }
-        fstream FileName;               
-        FileName.open(fname, ios::out);    
-        if (!FileName){
-            cout<<"Error while creating the file";
-            return;
-        }    
-        FileName.write(buffer+i, aux-(i+1));
-        while(1){
-            aux=read(sockett,buffer,2048);
-            if(aux==-1) 
-                exit(1);                  /*error*/
-            if(aux==0)
-                break;
-            FileName.write(buffer, aux);
+        if(k<2){
+            response+= buffer[i];
         }
-        FileName.close();
-        cout << "asset was saved in file " << fname << " " << fsize << endl;
+        if(k==2){
+            fname+=buffer[i];
+        }
+        if(k==3){
+            fsize+=buffer[i];
+        }
+        if(k>3){
+            break;
+        }
     }
+
+    fstream FileName;               
+    FileName.open(fname, ios::out);    
+    if (!FileName){
+        cout<<"Error while creating the file";
+        return;
+    }    
+    while(1){
+        aux=read(sockett,buffer,2048);
+        if(aux==-1) exit(1);                 /*error*/
+        if(aux==0)
+            break;
+        FileName.write(buffer, aux);
+    }
+    FileName.close();
+    cout << "asset was saved in file " << fname << " with " << fsize << " bytes"<<endl;
+
+
 }
 
 void send_tcp_image(int sockett, ifstream* file) {
@@ -104,9 +108,10 @@ void send_tcp_image(int sockett, ifstream* file) {
             if(aux==-1) exit(1);                  /*error*/
 
             memset(file_data, 0, file_data_size);            // Clear the buffer
+            
         }
 
-        aux=write(sockett, "\aux", 1);
+        aux=write(sockett, "\n", 1);
         if(aux==-1) exit(1);                  /*error*/
     }
 }
@@ -134,10 +139,6 @@ string send_tcp_message(string message, type type, ifstream* file) {
 
     aux=connect(sockett,res->ai_addr,res->ai_addrlen);
     if(aux==-1) exit(1);                    /*error*/
-    
-    printf("message: %s\n", message.c_str());
-    printf("message size: %lu\n", message.size());
-    printf("%d", message[message.size()-1]);
 
     //Sending message
     aux=write(sockett, message.c_str(), message.size());
@@ -146,6 +147,7 @@ string send_tcp_message(string message, type type, ifstream* file) {
     if (type == RECEIVE_TCP_IMAGE) {
         printf("Receiving image\n");
         receive_tcp_image(sockett);
+        return " ";
     } else if (type == SEND_TCP_IMAGE) {
         printf("Sending image\n");
         send_tcp_image(sockett, file);
@@ -154,9 +156,6 @@ string send_tcp_message(string message, type type, ifstream* file) {
     //Receiving message
     aux=read(sockett, server_awnser, server_awmser_size);
     if(aux==-1) exit(1);                /*error*/
-
-    printf("%s\n", server_awnser);
-
     
     // Closing connection
     freeaddrinfo(res);                  //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
@@ -164,3 +163,50 @@ string send_tcp_message(string message, type type, ifstream* file) {
 
     return server_awnser;
 }
+
+
+
+/*aux=read(sockett,buffer,1);
+    if(aux==-1) exit(1);                  error
+    string response = buffer;
+    string r = response.substr(0, 7);
+    if(r == "RSA NOK"){
+        cout << "asset does not exist" << endl;
+    }else if(r == "RSA OK "){
+        string fname, fsize;
+        int i=7;
+        int k=0;
+        while (1){
+            if(buffer[i]==' '){
+            k++;
+            i++;
+            }else if(k==0){
+                fname += buffer[i];
+                i++;
+            }else if(k==1){
+                fsize += buffer[i];
+                i++;
+            }
+            else if(k==2){
+                break;
+            }
+        }
+    
+        fstream FileName;               
+        FileName.open(fname, ios::out);    
+        if (!FileName){
+            cout<<"Error while creating the file";
+            return;
+        }    
+        FileName.write(buffer+i, aux-(i+1));
+        while(1){
+            aux=read(sockett,buffer,2048);
+            if(aux==-1) 
+                exit(1);                  error
+            if(aux==0)
+                break;
+            FileName.write(buffer, aux);
+        }
+        FileName.close();
+        cout << "asset was saved in file " << fname << " whith " << fsize << " bytes"<<endl;
+    }*/
