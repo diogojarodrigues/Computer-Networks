@@ -59,8 +59,8 @@ void openn() {
     } else if (response == "ROA NLG\n") {
         cout << "user is not logged in" << endl;
     } else if (response.length() == 11 && response.substr(0, 7) == "ROA OK ") {
-        // create_file_copy(&file, fname);                  //A copia é no lado do servidor ou do cliente?
-        cout << "Auction started with AID: " + response.substr(8, 3) << endl;
+        //create_file_copy(&file, fname); TODO: delete later
+        cout << "Auction started with AID: " + response.substr(7, 3) << endl;
     } else {
         cout << "open: error" << endl;
     }

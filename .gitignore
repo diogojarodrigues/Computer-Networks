@@ -4,3 +4,7 @@ user.out
 *.o
 *.out
 bin/
+
+server
+test
+user
