@@ -74,18 +74,23 @@ void receive_tcp_image(int sockett){
         }
     }
 
+    printf("%s %s %s\n", response.c_str(),fname.c_str(),fsize.c_str());
+
     fstream FileName;               
     FileName.open(fname, ios::out);    
     if (!FileName){
         cout<<"Error while creating the file";
         return;
-    }    
-    while(1){
+    }
+    ssize_t file_size=stoi(fsize);
+
+    ssize_t bytes_left;
+    while(bytes_left==0){
         aux=read(sockett,buffer,2048);
         if(aux==-1) exit(1);                 /*error*/
-        if(aux==0)
-            break;
         FileName.write(buffer, aux);
+        std::streamsize bytes = FileName.tellp();
+        bytes_left=file_size-bytes;
     }
     FileName.close();
     cout << "asset was saved in file " << fname << " with " << fsize << " bytes"<<endl;
