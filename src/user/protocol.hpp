@@ -27,10 +27,10 @@ enum type {
 extern const char* port;
 extern const char* server_ip;
 
-string send_udp_message(string message);
+string send_udp_request(string message);
 
 void receive_tcp_image(int fd);
 
-string send_tcp_message(string message, type type=DEFAULT, ifstream* file=nullptr);
+string send_tcp_request(string message, type type=DEFAULT, ifstream* file=nullptr);
 
 #endif // PROTOCOL_HPP

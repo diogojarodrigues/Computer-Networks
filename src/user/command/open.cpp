@@ -40,9 +40,10 @@ void openn() {
 
     // Open file
     string path = "assets/" + fname;                            //TODO: CHANGE THIS WHEN SUBMITTING
+
     ifstream file(path, ios::binary);
     if (!file.is_open()) {
-        std::cout << "open: file does not exist" << std::endl;
+        std::cerr << "open: file does not exist" << std::endl;
         return;
     }  
 
@@ -52,7 +53,7 @@ void openn() {
     }
 
     string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + to_string(fileInfo.st_size) + " ";
-    string response = send_tcp_message(request, SEND_TCP_IMAGE, &file);
+    string response = send_tcp_request(request, SEND_TCP_IMAGE, &file);
 
     if (response == "ROA NOK\n") {
         cout << "auction could not be started" << endl;

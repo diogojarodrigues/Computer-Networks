@@ -1,4 +1,7 @@
+#include "./protocol.hpp"
 #include "./utils.hpp"
+
+#include "commands.hpp"
 
 void login(string request) {
 
@@ -10,8 +13,8 @@ void login(string request) {
         || !isUid(request.substr(4, 6))
         || !isPassword(request.substr(11, 8))
     ) {
-        printf("invalid udp command\n");
-        sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+        if (DEBUG) printf("login: wrong arguments\n");
+        write_udp_message("ERR\n");
         return;
     }
 
@@ -20,42 +23,22 @@ void login(string request) {
     string user_folder_path = "./src/server/data/users/" + uid + "/";
     
     if (fs::exists(user_folder_path)) {                     //User exists
-        printf("user %s exists\n", uid.c_str());
 
         if (passwordsMatch(user_folder_path + "pass.txt", password)) {
-            sendto(udp_socket, "RLI OK\n", 7, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+            write_udp_message("RLI OK\n");
         } else {
-            sendto(udp_socket, "RLI NOK\n", 8, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+            write_udp_message("RLI NOK\n");
         }
 
     } else {                                                //User does not exist, create one
 
-        printf("user %s does not exist, creating them...\n", uid.c_str());
-
         fs::create_directory(user_folder_path);
-        fs::create_directory(user_folder_path + "/hosted");
-        fs::create_directory(user_folder_path + "/bidded");
-
-        //todo: create function create file, folder, and read/write files
-        std::ofstream outputLoginFile(user_folder_path + "/login.txt");
-        if (!outputLoginFile.is_open()) {
-            printf("error creating login.txt\n");
-            sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
-            return;
-        }
-        outputLoginFile.close();
+        fs::create_directory(user_folder_path + "hosted");
+        fs::create_directory(user_folder_path + "bidded");
+        createFile(user_folder_path + "/login.txt", "");
+        createFile(user_folder_path + "/pass.txt", password);        
         
-        std::ofstream outputPassFile(user_folder_path + "/pass.txt");
-        if (!outputPassFile.is_open()) {
-            printf("error creating pass.txt\n");
-            sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
-            return;
-        }
-
-        outputPassFile << password;
-        outputPassFile.close();
-
-        sendto(udp_socket, "RLI REG\n", 8, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+        write_udp_message("RLI REG\n");
     }
 }
 
@@ -69,8 +52,8 @@ void logout(string request, bool unregister) {
         || !isUid(request.substr(4, 6))
         || !isPassword(request.substr(11, 8))
     ) {
-        printf("invalid udp command\n");
-        sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+        if (DEBUG) printf("invalid udp command\n");
+        write_udp_message("ERR\n");
         return;
     }
 
@@ -82,7 +65,7 @@ void logout(string request, bool unregister) {
 
         if (!passwordsMatch(user_folder_path + "pass.txt", password)) {
             printf("pasword does not match\n");
-            sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+            write_udp_message("ERR\n");
             return;
         }
         
@@ -90,15 +73,15 @@ void logout(string request, bool unregister) {
 
             if (unregister == true) fs::remove(user_folder_path + "/pass.txt");
             fs::remove(user_folder_path + "/login.txt");
-            sendto(udp_socket, "RLO OK\n", 7, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
-        
+            write_udp_message("RLO OK\n");
+
         } else {
-            sendto(udp_socket, "RLO NOK\n", 8, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+            write_udp_message("RLO NOK\n");
         }
 
     } else {
         printf("user %s does not exist\n", uid.c_str());
-        sendto(udp_socket, "RLO UNR\n", 8, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+        write_udp_message("RLO UNR\n");
     }
 
 };
@@ -111,25 +94,64 @@ void show_record(string request) {};
 
 
 // ################ TCP COMMANDS ################
-void openn(string request, string buffer) {
+void openn(string request) {
+
+    printf("openn: %s\n", request.c_str());
+    vector<string> fields = split(request);
+    printf("fields: ");
+    for (string token : fields) {
+        printf("_%s_ ", token.c_str());
+    }
+    printf("\nFields size: %zu\n", fields.size());
 
     if (
-        request.length() != 20
-        || request[3] != ' '
-        || request[10] != ' '
-        || request[19] != '\n'
-        || !isUid(request.substr(4, 6))
-        || !isPassword(request.substr(11, 8))
-        //Adicionar mais verificalções
-        //Dividir o request, sempre que há um espaço
-        //Verficar se tem o número de campos certos, atribuir cada campo a uma variável, e verificar cada variável
+        fields.size() != 8 ||
+        !isUid(fields[1]) ||
+        !isPassword(fields[2]) ||
+        !isName(fields[3]) ||
+        !isValue(fields[4]) ||
+        !isDuration(fields[5]) ||
+        !isFileName(fields[6]) ||
+        !isFileSize(fields[7])
     ) {
-        printf("invalid udp command\n");
-        sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+        printf("open: invalid arguments\n");
+        write_tcp_message("ERR\n");
         return;
     }
 
+    string uid = fields[1];
+    string password = fields[2];
+    string name = fields[3];
+    // int start_value = stoi(fields[4]);
+    // int time_active = stoi(fields[5]);
+    string file_name = fields[6];
+    // int file_size = stoi(fields[7]);
+    string aid = generateAid();
+
+    // Create auction folder
+    string user_folder_path = "src/server/data/auctions/" + aid + "/";
+    fs::create_directory(user_folder_path);
+    fs::create_directory(user_folder_path + "bids/");
+    createFile(user_folder_path + "start.txt", "");
+    createFile(user_folder_path + "end.txt", "");
+    createFile(user_folder_path + file_name, "");
+
+    // Casos em que devemos enviar o ROA NOK
+    // Casos em que deviamos dar user not logged in
+
+    // saveImage();
+
+    write_tcp_message("ROA OK\n");
 };
-void closee(string request) {};
-void show_asset(string request) {};
-void bid(string request) {};
+
+void closee(string request) {
+
+};
+
+void show_asset(string request) {
+
+};
+
+void bid(string request) {
+
+};

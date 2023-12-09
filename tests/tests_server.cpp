@@ -6,7 +6,7 @@
 bool test(string opcode, string user, string expected_awnser) {
     string request = opcode + user;
 
-    if (send_udp_message(request) == expected_awnser) {
+    if (send_udp_request(request) == expected_awnser) {
         return true;
     } else {
         return false;
@@ -41,9 +41,9 @@ void test01() {
 void test02() {
 
     if (
-        send_udp_message("LIN 999999 99999999\n") == "RLO REG\n"     || 
-        send_udp_message("LIN 999999 99999999\n") == "RLI NOK\n"     ||
-        send_udp_message("LIN 999999 99999999\n") == "RLI NOK\n"
+        send_udp_request("LIN 999999 99999999\n") == "RLO REG\n"     || 
+        send_udp_request("LIN 999999 99999999\n") == "RLI NOK\n"     ||
+        send_udp_request("LIN 999999 99999999\n") == "RLI NOK\n"
     ) {
         printf("test01: success\n");
     } else {
@@ -54,6 +54,12 @@ void test02() {
 
 void test03() {
 
+    string r1 = send_udp_request("LIN 123489 12341234\n");
+    cout << r1 << endl;
+
+    string r2 = send_tcp_request("OPA 5 5 5 5");
+    cout << r2 << endl;
+
 }
 
 int main() {
@@ -61,9 +67,9 @@ int main() {
     //TODO: não está a funcionar
     
     printf("Running tests...\n");
-    test01();
+    // test01();
     // test02();
-    // test03();
+    test03();
     printf("Tests finished\n");
 
     return 0;

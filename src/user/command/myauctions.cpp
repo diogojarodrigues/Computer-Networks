@@ -3,7 +3,7 @@
 
 void myauctions() {
     string request = "LMA " + current_uid +"\n";
-    string response = send_udp_message(request);
+    string response = send_udp_request(request);
     string status = response.substr(0, 7);
     if (status == "RMA NOK") {
         cout << "user UID has no ongoing auctions" << endl;

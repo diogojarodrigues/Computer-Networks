@@ -14,7 +14,7 @@ void show_record() {
     };
 
     string request = "SRC " + aid +"\n";
-    string response = send_udp_message(request); 
+    string response = send_udp_request(request); 
     string r=response.substr(0, 7);
     if(r=="RRC NOK"){
         cout << "show_record: asset does not exist" << endl;

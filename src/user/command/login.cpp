@@ -33,7 +33,7 @@ void login() {
 
     // Send the message to the server
     string request = "LIN " + uid + " " + password + "\n";
-    string response = send_udp_message(request);
+    string response = send_udp_request(request);
 
     // Check the response
     if (response == "RLI REG\n") {

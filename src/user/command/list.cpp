@@ -3,7 +3,7 @@
 
 void list() {
     string request = "LST\n";
-    string response = send_udp_message(request);
+    string response = send_udp_request(request);
     string r = response.substr(0, 7);
     if (r == "RLS NOK") {
         cout << "no auction was yet started" << endl;

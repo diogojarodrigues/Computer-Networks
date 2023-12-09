@@ -47,8 +47,6 @@ string get_auctions_bids(string response){
 
 void print_auctions(string auctions){
     
-    printf("%s\n", auctions.c_str());
-
     int k=0; // 1 and 3 in aid, 0 in status
     for (char c : auctions) {
         if(k>=0 && k<=3){

@@ -8,6 +8,10 @@
 #include <cstring>
 #include <cstdlib>
 #include <string>
+#include <iostream>
+#include <cstring>
+#include <cerrno>
+#include <cstdlib>
 
 #define PORT "58098"
 #define HOST "localhost"
@@ -22,17 +26,19 @@ extern struct sockaddr_in udp_addr;
 
 int initialize_udp_socket();
 string read_udp_message();
+void write_udp_message(string message);
 void close_udp_socket();
 
 
 // TCP
-extern int tcp_socket;
+extern int tcp_socket, sockett;
 extern socklen_t tcp_addrlen;
 extern struct addrinfo* tcp_res;
 extern struct sockaddr_in tcp_addr;
 
 int initialize_tcp_socket();
-string read_tcp_message();
+string read_tcp_message(bool create_conection = true);
+void write_tcp_message(string message);
 void close_tcp_socket();
 
 #endif // PROTOCOL_SERVER_HPP

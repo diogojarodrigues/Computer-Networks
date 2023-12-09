@@ -1,8 +1,11 @@
-#include "protocol.hpp"
+#include "./protocol.hpp"
+#include "./utils.hpp"
+
+
 
 /* ################### GLOBAL VARIABLES ################### */
 
-int udp_socket, tcp_socket;
+int udp_socket, tcp_socket, sockett;
 struct addrinfo *udp_res, *tcp_res;
 struct sockaddr_in udp_addr, tcp_addr;
 socklen_t udp_addrlen, tcp_addrlen;
@@ -38,7 +41,19 @@ string read_udp_message() {
     aux = recvfrom(udp_socket, buffer, buffer_size, 0, (struct sockaddr*) &udp_addr, &udp_addrlen);
     if (aux == -1) return "";
 
+    if (DEBUG) cout << "BEGIN: received UDP request: " << buffer << "(" << aux << " bytes)\n";
+
     return buffer;
+}
+
+void write_udp_message(string message) {
+    int aux = sendto(udp_socket, message.c_str(), message.length(), 0, (struct sockaddr*)&udp_addr, udp_addrlen);
+    if (aux == -1) {
+        printf("sendto error\n");
+        exit(-1);
+    }
+
+    if (DEBUG) cout << "END: sent UDP response: " << message << "(" << message.size() << " bytes)\n";
 }
 
 void close_udp_socket() {
@@ -72,16 +87,44 @@ int initialize_tcp_socket() {
     return 0;
 }
 
-string read_tcp_message() {
-    //TODO: A função está sus, acho que não se usa recvfrom para TCP
-    int aux, buffer_size = 2048;
-    char buffer[buffer_size];
+string read_tcp_message(bool create_connection) {
+    char buffer[BUFFER_SIZE] = "\0";
+    int bytes_read = 0;
 
-    tcp_addrlen = sizeof(tcp_addr);
-    aux = recvfrom(tcp_socket, buffer, buffer_size, 0, (struct sockaddr*) &tcp_addr, &tcp_addrlen); //TODO: Check if this is correct 
-    if (aux == -1) return "";
+    // if (create_connection == true) {
+        sockett = accept(tcp_socket, (struct sockaddr*)&tcp_addr, &tcp_addrlen);
+        if (sockett < 0) {
+            printf("accept error connection\n");
+            exit(-1);
+        }
+    // }
+
+
+    // Handle data from the TCP connection
+    bytes_read = read(sockett, buffer, sizeof(buffer));
+    if (bytes_read < 0) {
+        printf("recv error\n");
+        exit(-1);
+    }
+
+    if (DEBUG) cout << "BEGIN: received TCP request: " << buffer << "(" << bytes_read << " bytes)\n";
 
     return buffer;
+}
+
+void write_tcp_message(string message) {
+
+    printf("message: %s\n", message.c_str());
+    printf("message size: %zu\n", message.size());
+    
+    int aux = write(sockett, message.c_str(), message.size());
+    if (aux == -1) {
+        printf("Send tcp message error");
+        cerr << "Error occurred: " << strerror(errno) << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (DEBUG) cout << "END: sent TCP response:" << message << "(" << message.size() << " bytes)\n";
 }
 
 void close_tcp_socket() {

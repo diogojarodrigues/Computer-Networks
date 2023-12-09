@@ -11,7 +11,7 @@ void logout() {
 
     // Send the message to the server
     string request = "LOU " + current_uid + " " + current_password + "\n";
-    string response = send_udp_message(request);
+    string response = send_udp_request(request);
 
     // Check the response
     if (response == "RLO OK\n") {

@@ -9,7 +9,6 @@ void my_bids(string request);
 void list(string request);
 void show_record(string request);
 
-
 // ################ TCP COMMANDS ################
 void openn(string request);
 void closee(string request);

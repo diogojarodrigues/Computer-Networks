@@ -15,7 +15,7 @@ void closee() {
     };
 
     string request = "CLS " + current_uid + " " + current_password + " "+ aid +"\n";
-    string response = send_tcp_message(request, DEFAULT, nullptr);
+    string response = send_tcp_request(request, DEFAULT, nullptr);
 
     if (response == "RCL OK\n") {
         cout << "auction was closed" << endl;

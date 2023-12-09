@@ -1,4 +1,4 @@
-\~º§§	CXX = g++
+CXX = g++
 CXXFLAGS = -std=c++17 -Wall
 
 OBJ_DIR = bin

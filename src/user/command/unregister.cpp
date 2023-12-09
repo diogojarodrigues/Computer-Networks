@@ -10,7 +10,7 @@ void unregister() {
 
     // Send the message to the server
     string request = "UNR " + current_uid + " " + current_password + "\n";
-    string response = send_udp_message(request);
+    string response = send_udp_request(request);
 
     // Check the response
     if (response == "RUR OK\n") {

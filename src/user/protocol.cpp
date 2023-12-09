@@ -5,14 +5,14 @@
 const char* server_ip = SERVER_IP;
 const char* port = PORT;
 
-string send_udp_message(string message) {
+string send_udp_request(string message) {
     
     int sockett,errcode; 
     ssize_t aux;
     socklen_t addrlen;
     struct addrinfo hints, *res;
     struct sockaddr_in addr;
-    char buffer[8192];
+    char buffer[8192] = "\0";
 
     sockett=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
     if (sockett==-1) exit(1);                /*error*/
@@ -115,7 +115,7 @@ void send_tcp_image(int sockett, ifstream* file) {
     }
 }
 
-string send_tcp_message(string message, type type, ifstream* file) {
+string send_tcp_request(string message, type type, ifstream* file) {
 
     int sockett, aux;
     // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
@@ -133,7 +133,7 @@ string send_tcp_message(string message, type type, ifstream* file) {
     hints.ai_family=AF_INET;                //IPv4
     hints.ai_socktype=SOCK_STREAM;          //TCP socket
     
-    aux=getaddrinfo(server_ip, port, &hints, &res);     //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
+    aux=getaddrinfo(server_ip, port, &hints, &res);         //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
     if(aux!=0) exit(1);                     /*error*/
 
     aux=connect(sockett,res->ai_addr,res->ai_addrlen);
@@ -141,14 +141,16 @@ string send_tcp_message(string message, type type, ifstream* file) {
 
     //Sending message
     aux=write(sockett, message.c_str(), message.size());
-    if(aux==-1) exit(1);                    /*error*/           //TODO: TEMOS DE MUDAR DEPOIS ESTES ERROS
+    printf("Message sent to server: %s.", message.c_str());
+    if(aux==-1) exit(1);                    /*error*/       //TODO: TEMOS DE MUDAR DEPOIS ESTES ERROS
 
     if (type == RECEIVE_TCP_IMAGE) {
         printf("Receiving image\n");
         receive_tcp_image(sockett);
         return " ";
-    } else if (type == SEND_TCP_IMAGE) {
-        printf("Sending image\n");
+    }
+    if (type == SEND_TCP_IMAGE) {
+        printf("\nSending image\n");
         send_tcp_image(sockett, file);
     }
 

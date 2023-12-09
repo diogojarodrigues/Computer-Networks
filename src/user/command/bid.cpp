@@ -14,7 +14,7 @@ void bid() {
         return;
     }
     string request= "BID " + current_uid + " " + current_password + " " + command[1] + " " + command[2] + "\n";
-    string response = send_tcp_message(request);
+    string response = send_tcp_request(request);
     if(response=="RBD ACC\n") {
         cout << "Bid placed\n";
     } else if(response=="RBD NOK\n") {

@@ -1,4 +1,6 @@
 #include "./utils.hpp"
+#include "./protocol.hpp"
+#include "./commands.hpp"
 
 void handle_udp_message() {
 
@@ -15,7 +17,6 @@ void handle_udp_message() {
     }
 
     string opcode = request.substr(0, 3);
-    printf("received UDP request: %s", request.c_str());
 
     if (opcode == "LIN") {
         login(request);
@@ -43,35 +44,11 @@ void read_file() {
 }
 
 void handle_tcp_message() {
-    printf("connection tcp received\n");
-
-    char buffer[2048];
-    int bytes_read;
-
-    int new_socket = accept(tcp_socket, (struct sockaddr*)&tcp_addr, &tcp_addrlen);
-    if (new_socket < 0) {
-        printf("accept error\n");
-        exit(-1);
-    }
-
-    // Handle data from the TCP connection
-    bytes_read = recv(new_socket, buffer, sizeof(buffer), 0);
-    if (bytes_read < 0) {
-        printf("recv error\n");
-        exit(-1);
-    }
-
-    if (bytes_read > 100) {             //Estamos no caso do comando open
-        read_file();
-        return;
-    }
     
-    
-    string request = buffer;
+    string request = read_tcp_message();
 
     if (
         request.length() < 3
-        || ( request[request.size() - 1] != '\n' && request.size() != sizeof(buffer) )
     ) {
         printf("invalid tcp command\n");
         sendto(tcp_socket, "ERR\n", 4, 0, (struct sockaddr*)&tcp_addr, tcp_addrlen);
@@ -79,9 +56,10 @@ void handle_tcp_message() {
     }
 
     string opcode = request.substr(0, 3);
-    printf("received UDP request: %s", request.c_str());
+    
 
     if (opcode == "OPA") {
+        printf("\n");
         openn(request);
     } else if (opcode == "CLS") {
         closee(request);
