@@ -5,6 +5,6 @@
 **/*.out
 **/bin
 
-server
-test
-user
+server*
+test*
+user*
