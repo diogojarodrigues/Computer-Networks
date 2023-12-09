@@ -24,12 +24,13 @@ string send_udp_request(string message) {
     errcode=getaddrinfo(server_ip, port, &hints, &res);
     if(errcode!=0) exit(1);            /*error*/
 
+
     aux=sendto(sockett, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
     if(aux==-1) exit(1);                 /*error*/
-
     addrlen=sizeof(addr);
     aux=recvfrom(sockett,buffer, 8192, 0, (struct sockaddr*) &addr, &addrlen);
     if(aux==-1) exit(1);                 /*error*/
+
 
     freeaddrinfo(res);
     close(sockett);
@@ -58,6 +59,9 @@ void receive_tcp_image(int sockett){
             if(k==1){
                 response+=' ';
             }
+            if(k>3){
+                break;
+            }
             continue;
         }
         if(k<2){
@@ -69,30 +73,36 @@ void receive_tcp_image(int sockett){
         if(k==3){
             fsize+=buffer[i];
         }
-        if(k>3){
-            break;
-        }
+        
     }
+    string path="assets/" + fname;
 
-    printf("%s %s %s\n", response.c_str(),fname.c_str(),fsize.c_str());
+    FILE *file;
+    file = fopen(path.c_str(), "w");
 
-    fstream FileName;               
-    FileName.open(fname, ios::out);    
-    if (!FileName){
-        cout<<"Error while creating the file";
-        return;
-    }
     ssize_t file_size=stoi(fsize);
-
-    ssize_t bytes_left;
-    while(bytes_left==0){
+    while (1)
+    {
         aux=read(sockett,buffer,2048);
-        if(aux==-1) exit(1);                 /*error*/
-        FileName.write(buffer, aux);
-        std::streamsize bytes = FileName.tellp();
-        bytes_left=file_size-bytes;
+        if(aux==-1) exit(1); /*error*/
+        if(aux==0)
+            break;
+        if(file_size==aux-1){
+            aux=fwrite(buffer,1,aux-1,file);
+            file_size-=aux;
+            if(file_size==0)
+                break;
+            else{
+                fclose(file);
+                cout << "erro" <<endl;
+                return;
+            }
+        }                 
+        aux=fwrite(buffer,1,aux,file);
+        file_size-=aux;
     }
-    FileName.close();
+    fclose(file);
+    
     cout << "asset was saved in file " << fname << " with " << fsize << " bytes"<<endl;
 
 
@@ -216,3 +226,29 @@ string send_tcp_request(string message, type type, ifstream* file) {
         FileName.close();
         cout << "asset was saved in file " << fname << " whith " << fsize << " bytes"<<endl;
     }*/
+
+
+    /*fstream FileName;               
+    FileName.open(fname, ios::out);    
+    if (!FileName){
+        cout<<"Error while creating the file";
+        return;
+    }
+    ssize_t file_size=stoi(fsize);
+
+    
+    while(1){
+        aux=read(sockett,buffer,2048);
+        if(aux==-1) exit(1);error
+        if(aux==0)
+            break;
+        if(aux>file_size){
+            FileName.write(buffer, aux-1);
+            break;
+        }                 
+        FileName.write(buffer, aux);
+        file_size-=aux;
+        printf("filesize: %ld, aux:%ld\n",file_size,aux);
+        
+    }
+    FileName.close();*/
