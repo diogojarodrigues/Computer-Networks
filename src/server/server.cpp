@@ -11,7 +11,7 @@ void handle_udp_message() {
         || request.length() < 3
         || request[request.size() - 1] != '\n'
     ) {
-        printf("invalid udp command\n");
+        if (DEBUG) cout << "handle_udp_message: wrong arguments\n";
         sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);
         return;
     }
@@ -50,7 +50,7 @@ void handle_tcp_message() {
     if (
         request.length() < 3
     ) {
-        printf("invalid tcp command\n");
+        if (DEBUG) cout << "handle_tcp_message: wrong arguments\n";
         sendto(tcp_socket, "ERR\n", 4, 0, (struct sockaddr*)&tcp_addr, tcp_addrlen);
         return;
     }
@@ -59,7 +59,7 @@ void handle_tcp_message() {
     
 
     if (opcode == "OPA") {
-        printf("\n");
+        if (DEBUG) cout << "\n";
         openn(request);
     } else if (opcode == "CLS") {
         closee(request);
@@ -76,12 +76,12 @@ void handle_tcp_message() {
 int main(int argc, char** argv) {
 
     if (initialize_udp_socket() == -1) {
-        printf("main: error initializing udp socket\n");
+        cerr << "main: error initializing udp socket\n";
         exit(-1);
     }
 
     if (initialize_tcp_socket() == -1) {
-        printf("main: error initializing tcp socket\n");
+        cerr << "main: error initializing tcp socket\n";
         exit(-1);
     }
 
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
         
         int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
         if (activity < 0) {
-            printf("select error\n");
+            cerr << "main: select error\n";
             exit(-1);
         }
 

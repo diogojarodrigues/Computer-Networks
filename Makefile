@@ -9,9 +9,9 @@ user:
 	$(MAKE) -C src/user
 
 tests:
-	$(MAKE) -C tests
+	$(MAKE) -C tests/our
 
 clean:
 	$(MAKE) -C src/server clean
 	$(MAKE) -C src/user clean
-	$(MAKE) -C tests clean
+	$(MAKE) -C tests/our clean

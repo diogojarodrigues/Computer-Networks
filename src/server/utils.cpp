@@ -42,22 +42,16 @@ bool isValidFileName(const string str) {
 
 // Function to get the last ID from the directory
 int getLastAid(const string& directory) {
+    for (int i = 0; i < 1000; i++) {
+        ostringstream name;
+        name << setfill('0') << setw(3) << i;
+        string filename = name.str();
 
-    printf("diretoria existe? %d\n", fs::exists(directory));
-    
-    int lastID = -1;
-    for (const auto& entry : fs::directory_iterator(directory)) {
-        if (entry.is_directory()) {
-            string filename = entry.path().filename().string();
-            size_t pos = filename.find('_');
-            if (pos != string::npos) {
-                int id = stoi(filename.substr(0, pos));
-                lastID = max(lastID, id);
-            }
+        if (!fs::exists(directory + "/" + filename)) {
+            return i;
         }
     }
-
-    return lastID;
+    return -1;
 }
 
 
@@ -66,88 +60,100 @@ int getLastAid(const string& directory) {
 // ###########################################################
 bool isUid(const string str) {
     if (str.length() != 6) {
-        if (DEBUG) printf("uid length is not 6\n");
+        if (DEBUG) cout << "uid length is not 6\n";
         return false;
     }
 
     bool aux = isNumeric(str);
-    if (!aux && DEBUG) printf("uid is not numeric\n");
+    if (!aux && DEBUG) cout << "uid is not numeric\n";
     return aux;
 }
 
 bool isPassword(const string str) {
     if (str.length() != 8) {
-        if (DEBUG) printf("password length is not 8\n");
+        if (DEBUG) cout << "password length is not 8\n";
         return false;
     }
 
     bool aux = isAlphanumeric(str);
-    if (!aux && DEBUG) printf("password is not alphanumeric\n");
+    if (!aux && DEBUG) cout << "password is not alphanumeric\n";
     return aux;
 }
 
 bool isFileName(const string str) {
     if (str.length() > 24) {
-        if (DEBUG) printf("filename length is greater than 24\n");
+        if (DEBUG) cout << "filename length is greater than 24\n";
         return false;
     }
 
     bool aux = isValidFileName(str);
-    if (!aux && DEBUG) printf("filename is not valid\n");
+    if (!aux && DEBUG) cout << "filename is not valid\n";
     return aux;
 }
 
 bool isFileSize(const string str) {
     if (str.length() > 8) {
-        if (DEBUG) printf("file size length is greater than 8\n");
+        if (DEBUG) cout << "file size length is greater than 8\n";
         return false;
     }
 
     bool aux = isNumeric(str);
-    if (!aux && DEBUG) printf("file size is not numeric\n");
+    if (!aux && DEBUG) cout << "file size is not numeric\n";
     return aux;
 }
 
 bool isName(const string str) {
     if (str.length() > 10) {
-        if (DEBUG) printf("name length is greater than 10\n");
+        if (DEBUG) cout << "name length is greater than 10\n";
         return false;
     }
 
     bool aux = isAlphanumeric(str);
-    if (!aux && DEBUG) printf("name is not alphanumeric\n");
+    if (!aux && DEBUG) cout << "name is not alphanumeric\n";
     return aux;    
 }
 
 bool isValue(const string str) {
     if (str.length() > 6) {
-        if (DEBUG) printf("value length is greater than 6\n");
+        if (DEBUG) cout << "value length is greater than 6\n";
         return false;
     }
 
     bool aux = isNumeric(str);
-    if (!aux && DEBUG) printf("value is not numeric\n");
+    if (!aux && DEBUG) cout << "value is not numeric\n";
     return aux;
 }
 
 bool isDuration(const string str) {
     if (str.length() > 5) {
-        if (DEBUG) printf("duration length is greater than 5\n");
+        if (DEBUG) cout << "duration length is greater than 5\n";
         return false;
     }
 
     bool aux = isNumeric(str);
-    if (!aux && DEBUG) printf("duration is not numeric\n");
+    if (!aux && DEBUG) cout << "duration is not numeric\n";
     return aux;
 }
 
 // ###########################################################
 // #                    UTILS FUNCTIONS                      #
 // ###########################################################
-bool passwordsMatch(const string path, const string password) {
+bool user_exists(const string uid) {
+    const string directory = "src/server/data/users/" + uid + "/";
+    return fs::exists(directory);
+}
+
+bool user_loggged_in(const string uid) {
+    const string path = "src/server/data/users/" + uid + "/login.txt";
+    return fs::exists(path);
+}
+
+bool passwordsMatch(const string uid, const string password) {
+
+    const string path = "src/server/data/users/" + uid + "/pass.txt";
+
     ifstream inputPassFile(path);
     if (!inputPassFile.is_open()) {
-        // printf("error opening pass.txt\n");
         // sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);            //TODO: não devia estar aqui
         // exit(-1);
         return false;
@@ -177,11 +183,11 @@ vector<string> split(const string str) {
 string generateAid() {
     const string directory = "src/server/data/auctions/";
 
-    int lastID = getLastAid(directory);
-    int nextID = lastID + 1;
+    int id = getLastAid(directory);
+    if (id == 999) return "ERR";
     
     ostringstream oss;
-    oss << setw(3) << setfill('0') << nextID;
+    oss << setw(3) << setfill('0') << id;
     return oss.str();
 }
 
@@ -189,10 +195,52 @@ void createFile(const string path, const string content) {
     ofstream file(path);
 
     if (!file.is_open()) {
-        printf("error creating file\n");
+        cerr << "Error opening file" << endl;
         exit(-1);
     }
     if (content != "") file << content;
 
     file.close();
+}
+
+void saveImage(int socket, const string file, int size) {
+    char buffer[BUFFER_SIZE] = "\0";
+    int bytes_read = 0;
+    int count = 0;
+
+    ofstream assetFile(file, std::ios::binary);
+    if (!assetFile.is_open()) {
+        cerr << "Error opening file" << std::endl;
+        exit(-1);
+    }
+
+    while ((bytes_read = read(socket, buffer, sizeof(buffer))) > 0) {
+
+        if (buffer[bytes_read - 1] == '\n') {
+            bytes_read--;
+            count += bytes_read;
+            assetFile.write(buffer, bytes_read);
+            break;
+        }
+
+        count += bytes_read;
+        assetFile.write(buffer, bytes_read);
+        memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    assetFile.close();
+
+    if (count != size && DEBUG) cout << "saveImage: error saving image\n";
+}
+
+
+string start_datetime(time_t timestamp) {
+    struct tm *timeinfo;
+    char buffer[20]; // Sufficiently large buffer to hold the formatted date and time
+
+    timeinfo = localtime(&timestamp);
+
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+
+    return string(buffer);
 }

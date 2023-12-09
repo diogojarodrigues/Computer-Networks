@@ -49,7 +49,7 @@ string read_udp_message() {
 void write_udp_message(string message) {
     int aux = sendto(udp_socket, message.c_str(), message.length(), 0, (struct sockaddr*)&udp_addr, udp_addrlen);
     if (aux == -1) {
-        printf("sendto error\n");
+        if (DEBUG) cout << "write_udp_message: sendto error\n";
         exit(-1);
     }
 
@@ -94,7 +94,7 @@ string read_tcp_message(bool create_connection) {
     // if (create_connection == true) {
         sockett = accept(tcp_socket, (struct sockaddr*)&tcp_addr, &tcp_addrlen);
         if (sockett < 0) {
-            printf("accept error connection\n");
+            cerr << "Error occurred: " << strerror(errno) << endl;
             exit(-1);
         }
     // }
@@ -103,7 +103,7 @@ string read_tcp_message(bool create_connection) {
     // Handle data from the TCP connection
     bytes_read = read(sockett, buffer, sizeof(buffer));
     if (bytes_read < 0) {
-        printf("recv error\n");
+        cerr << "Error occurred: " << strerror(errno) << endl;
         exit(-1);
     }
 
@@ -114,12 +114,8 @@ string read_tcp_message(bool create_connection) {
 
 void write_tcp_message(string message) {
 
-    printf("message: %s\n", message.c_str());
-    printf("message size: %zu\n", message.size());
-    
     int aux = write(sockett, message.c_str(), message.size());
     if (aux == -1) {
-        printf("Send tcp message error");
         cerr << "Error occurred: " << strerror(errno) << endl;
         exit(EXIT_FAILURE);
     }

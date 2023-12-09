@@ -31,9 +31,16 @@ bool isValue(const string str);
 bool isDuration(const string str);
 
 // Utils functions
-bool passwordsMatch(const string path, const string password);
+bool user_exists(const string uid);
+bool user_loggged_in(const string uid);
+bool passwordsMatch(const string uid, const string password);
+
+
 vector<string> split(const string str);
 string generateAid();
 void createFile(const string path, const string content);
+void saveImage(int socket, const string file, int size);
+string start_datetime(time_t timestamp);
+
 
 #endif // UTILS_SERVER_HPP
