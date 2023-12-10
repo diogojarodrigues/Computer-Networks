@@ -36,7 +36,9 @@ bool user_exists(const string uid);
 bool user_loggged_in(const string uid);
 bool user_registered(const string uid);
 bool passwordsMatch(const string uid, const string password);
-
+bool auction_exists(const string aid);
+bool auction_closed(const string aid);
+string getAuctionOwner(const string aid);
 
 vector<string> split(const string str);
 string start_datetime(time_t timestamp);

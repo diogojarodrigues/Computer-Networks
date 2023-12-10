@@ -164,6 +164,11 @@ bool user_registered(const string uid) {
     return fs::exists(path);
 }
 
+bool auction_exists(const string aid) {
+    const string directory = "src/server/data/auctions/" + aid + "/";
+    return fs::exists(directory);
+}
+
 bool passwordsMatch(const string uid, const string password) {
 
     const string path = "src/server/data/users/" + uid + "/pass.txt";
@@ -181,6 +186,30 @@ bool passwordsMatch(const string uid, const string password) {
     inputPassFile.close();
 
     return password == correctPassword;
+}
+
+bool auction_closed(const string aid) {
+    const string path = "src/server/data/auctions/" + aid + "/end.txt";
+    return fs::exists(path);
+}
+
+string getAuctionOwner(const string aid) {
+    const string path = "src/server/data/auctions/" + aid + "/start.txt";
+
+    ifstream inputOwnerFile(path);
+    if (!inputOwnerFile.is_open()) {        
+        cerr << "Error opening file" << endl;
+        exit(-1);
+        return "";
+    }
+
+    //check if password is correct
+    string owner;
+    inputOwnerFile >> owner;
+    inputOwnerFile.close();
+
+    return owner;
+
 }
 
 vector<string> split(const string str) {

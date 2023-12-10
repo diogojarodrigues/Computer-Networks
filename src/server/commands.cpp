@@ -168,6 +168,63 @@ void openn(string request) {
 
 void closee(string request) {
 
+    //0-2 3 4-9 10 11-18 19 20-22 23 
+    if (
+        request.length() != 24
+        || request[3] != ' '
+        || request[10] != ' '
+        || request[19] != ' '
+        || request[23] != '\n'
+        || !isUid(request.substr(4, 6))
+        || !isPassword(request.substr(11, 8))
+        || !isAid(request.substr(20, 3))
+    ) {
+        if (DEBUG) cout << "close: wrong arguments\n";
+        write_tcp_message("ERR\n");
+        return;
+    }
+
+    string uid = request.substr(4, 6);
+    string password = request.substr(11, 8);
+    string aid = request.substr(20, 3);
+
+    // If the user does not exist
+    if (!user_loggged_in(uid)) {
+        if (DEBUG) cout << "close: user is not logged in\n";
+        write_tcp_message("RCL NLG\n");
+        return;
+    }
+
+    //If the auction does not exist
+    if (!auction_exists(aid)) {
+        if (DEBUG) cout << "close: auction does not exist\n";
+        write_tcp_message("RCL EAU\n");
+        return;
+    }
+
+    //If the auction is not owned by user id
+    if (uid != getAuctionOwner(aid)) {
+        if (DEBUG) cout << "close: auction is not owned by user id\n";
+        write_tcp_message("RCL EOW\n");
+        return;
+    }
+
+    //If the auction is already closed
+    if (auction_closed(aid)) {
+        if (DEBUG) cout << "close: auction is already closed\n";
+        write_tcp_message("RCL END\n");
+        return;
+    }
+    
+
+    //Close auction
+    time_t start_fulltime = time(NULL);
+    string file = "src/server/data/auctions/" + aid + "/end.txt";
+    string content = start_datetime(start_fulltime) + " " + to_string(start_fulltime);
+
+    createFile(file, content);
+    write_tcp_message("RCL OK\n");
+
 };
 
 void show_asset(string request) {
@@ -186,7 +243,7 @@ void show_asset(string request) {
     string aid = request.substr(4, 3);
 
     //TODO: talvez faltem mais verificações
-    if (!fs::exists("src/server/data/auctions/" + aid + "/")) {
+    if (!auction_exists(aid)) {
         if (DEBUG) cout << "show_asset: auction does not exist\n";
         write_tcp_message("RSA NOK\n");
         return;

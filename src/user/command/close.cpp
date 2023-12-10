@@ -3,10 +3,16 @@
 
 
 void closee() {
+    if (current_uid.empty() || current_password.empty()) {
+        cout << "You should logged in first!" << endl;
+        return;
+    }
+    
     if (command.size()!=2) {
         cout << "close: format not valid!" << endl;
         return;
     }
+
     string aid;
     aid = command[1];
     if (aid.length()!= 3 || !isNumeric(aid)) {
