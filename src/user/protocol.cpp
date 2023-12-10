@@ -25,7 +25,7 @@ string send_udp_request(string message) {
     if(errcode!=0) exit(1);            /*error*/
 
 
-    aux=sendto(sockett, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
+    aux=sendto(sockett, message.c_str(), message.size()+1, 0, res->ai_addr, res->ai_addrlen);
     if(aux==-1) exit(1);                 /*error*/
     addrlen=sizeof(addr);
     aux=recvfrom(sockett,buffer, 8192, 0, (struct sockaddr*) &addr, &addrlen);
@@ -164,7 +164,7 @@ string send_tcp_request(string message, type type, ifstream* file) {
     if(aux==-1) exit(1);                    /*error*/
 
     //Sending message
-    aux=write(sockett, message.c_str(), message.size());
+    aux=write(sockett, message.c_str(), message.size()+1);
     if(aux==-1) exit(1);                    /*error*/       //TODO: TEMOS DE MUDAR DEPOIS ESTES ERROS
 
     if (type == RECEIVE_TCP_IMAGE) {

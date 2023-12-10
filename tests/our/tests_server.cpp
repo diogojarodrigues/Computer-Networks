@@ -12,6 +12,7 @@ bool test(string opcode, string user, string expected_awnser) {
         return false;
     }
     printf("Fim\n");
+    return false;
 }
 
 void test01() {

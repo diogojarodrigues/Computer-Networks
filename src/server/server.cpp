@@ -6,6 +6,7 @@ void handle_udp_message() {
 
     string request = read_udp_message();
 
+
     if (
         request.length() > 21
         || request.length() < 3

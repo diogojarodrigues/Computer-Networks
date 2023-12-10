@@ -47,6 +47,7 @@ void createFile(const string path, const string content);
 string generateAid();
 void saveImage(int socket, const string file, int size);
 void sendImage(int sockett, const string aid);
+int getHighestBid(string aid);
 
 
 #endif // UTILS_SERVER_HPP

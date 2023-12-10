@@ -37,6 +37,8 @@ string read_udp_message() {
     int aux, buffer_size = 21;                  //UDP messages are at most 20 bytes long
     char buffer[buffer_size];
 
+    
+
     udp_addrlen = sizeof(udp_addr);
     aux = recvfrom(udp_socket, buffer, buffer_size, 0, (struct sockaddr*) &udp_addr, &udp_addrlen);
     if (aux == -1) return "";
@@ -107,7 +109,8 @@ string read_tcp_message(bool create_connection) {
         exit(-1);
     }
 
-    if (DEBUG) cout << "BEGIN: received TCP request: " << buffer << "(" << bytes_read << " bytes)\n";
+
+    if (DEBUG) cout << "BEGIN: received TCP request: " << buffer << "(" << bytes_read << " bytes) \n";
 
     return buffer;
 }

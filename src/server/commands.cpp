@@ -4,7 +4,6 @@
 #include "commands.hpp"
 
 void login(string request) {
-
     if (
         request.length() != 20
         || request[3] != ' '
@@ -145,7 +144,6 @@ void openn(string request) {
         write_tcp_message("ROA NLG\n");
         return;
     }
-
     // Create auction folder
     string user_folder_path = "src/server/data/auctions/" + aid + "/";
     fs::create_directory(user_folder_path);
@@ -159,6 +157,12 @@ void openn(string request) {
 
 
     createFile(user_folder_path + "start.txt", content);
+
+
+    string user_bid_path = "src/server/data/users/" + uid + "/hosted/" + aid + ".txt";
+    content="";
+    createFile(user_bid_path, content);
+
 
     saveImage(sockett, user_folder_path + "asset/" + file_name, stoi(file_size));
 
@@ -255,5 +259,87 @@ void show_asset(string request) {
 };
 
 void bid(string request) {
+    vector<string> fields = split(request);
+    string uid = fields[1];
+    string password = fields[2];
+    string aid = fields[3];
+    string value = fields[4];
+
+
+    if (fields.size() != 5 || !isUid(uid) || !isPassword(password) || !isAid(aid) || !isValue(value.c_str())){
+        if (DEBUG) cout << "open: invalid arguments" << endl;
+        write_tcp_message("ERR\n");
+        return;
+    }
+
+    int valueint=stoi(value);
+
+    if(!auction_exists(aid)|| auction_closed(aid)){
+        write_tcp_message("RBD NOK\n");
+        return;
+    }
+    if(!user_loggged_in(uid)|| !passwordsMatch(uid,password)){
+        write_tcp_message("RBD NLG\n");
+        return;
+    }
+    if(getAuctionOwner(aid)==uid){
+        write_tcp_message("RBD ILG\n");
+        return;
+    }
+    if(valueint<=getHighestBid(aid)){
+        write_tcp_message("RBD REF\n");
+        return;
+    }
+
+    string bid;
+    if(valueint<10){
+        bid="00000"+value;
+    }
+    else if(valueint<100){
+        bid="0000"+value;
+    }
+    else if(valueint<1000){
+        bid="000"+value; 
+    }
+    else if(valueint<10000){
+        bid="00"+value;
+    }
+    else if(valueint<100000){
+        bid="0"+value;
+    }
+    else{
+        bid=value;
+    }
+    string bid_path = "src/server/data/auctions/" + aid + "/bids/" + bid + ".txt";
+    
+    const string path = "src/server/data/auctions/" + aid + "/start.txt";
+    ifstream inputStartFile(path);
+    if (!inputStartFile.is_open()) {
+        cerr << "Error opening file" << endl;
+        exit(-1);
+    }
+    const int buffer_size = 512;
+    char buffer[buffer_size] = "";
+    inputStartFile.read(buffer, buffer_size);
+    inputStartFile.close();
+    //UID name assetfname startvalue timeactive start_ datetime startfulltime
+    int k=0;
+    string initial_fulltime;
+    for(char c : buffer){
+        if(c==' ')
+            k++;
+        else if(k==7)
+            initial_fulltime+=c;
+    }
+
+    time_t start_fulltime = time(NULL);
+    int time_active = stoi(initial_fulltime) - start_fulltime;
+    string content = uid + " " + value + " " + start_datetime(time(NULL)) + " " + to_string(time_active);
+    createFile(bid_path, content);
+    string user_bid_path = "src/server/data/users/" + uid + "/bidded/" + aid + ".txt";
+    content="";
+    createFile(user_bid_path, content);
+    write_tcp_message("RBD ACC\n");
+
 
 };

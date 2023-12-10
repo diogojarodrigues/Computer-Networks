@@ -188,9 +188,53 @@ bool passwordsMatch(const string uid, const string password) {
     return password == correctPassword;
 }
 
+string start_datetime(time_t timestamp) {
+    struct tm *timeinfo;
+    char buffer[20]; // Sufficiently large buffer to hold the formatted date and time
+
+    timeinfo = localtime(&timestamp);
+
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+
+    return string(buffer);
+}
+
 bool auction_closed(const string aid) {
-    const string path = "src/server/data/auctions/" + aid + "/end.txt";
-    return fs::exists(path);
+    const string path_end = "src/server/data/auctions/" + aid + "/end.txt";
+    if (fs::exists(path_end)){
+        return true;
+    }
+    const string path = "src/server/data/auctions/" + aid + "/start.txt";
+    ifstream inputStartFile(path);
+    if (!inputStartFile.is_open()) {
+        cerr << "Error opening file" << endl;
+        exit(-1);
+    }
+    const int buffer_size = 512;
+    char buffer[buffer_size] = "";
+    inputStartFile.read(buffer, buffer_size);
+    inputStartFile.close();
+    //UID name assetfname startvalue timeactive start_ datetime startfulltime
+    int k=0;
+    string timeactive,start_fulltime;
+    for(char c : buffer){
+        if(c==' ')
+            k++;
+        else if(k==4)
+            timeactive+=c;
+        else if(k==7)
+            start_fulltime+=c;
+    }
+    if(stoi(timeactive)+stoi(start_fulltime)>time(NULL)){
+        return false;
+    }
+
+    string file = "src/server/data/auctions/" + aid + "/end.txt";
+    time_t timestamp = stoi(timeactive)+stoi(start_fulltime);
+    string content = start_datetime(timestamp)+ " " + timeactive;
+    createFile(file, content);
+    return true;
+
 }
 
 string getAuctionOwner(const string aid) {
@@ -214,11 +258,21 @@ string getAuctionOwner(const string aid) {
 
 vector<string> split(const string str) {
     vector<string> tokens;
-    stringstream ss(str);
+    /**stringstream ss(str);
     string token;
     
     while (getline(ss, token, ' ')) {
         tokens.push_back(token);
+    }*/
+    string buffer;
+    for(char c:str){
+        if(c==' '|| c== '\n'){
+            tokens.push_back(buffer);
+            buffer="";
+        }
+        else{
+            buffer+=c;
+        }
     }
     
     return tokens;
@@ -279,17 +333,6 @@ void saveImage(int socket, const string file, int size) {
 }
 
 
-string start_datetime(time_t timestamp) {
-    struct tm *timeinfo;
-    char buffer[20]; // Sufficiently large buffer to hold the formatted date and time
-
-    timeinfo = localtime(&timestamp);
-
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
-
-    return string(buffer);
-}
-
 void sendImage(int sockett, const string aid) {
     string path = "src/server/data/auctions/" + aid + "/asset/";
 
@@ -335,4 +378,43 @@ void sendImage(int sockett, const string aid) {
     write(sockett, "\n", 1);
 
     assetFile.close();
+}
+
+int getHighestBid(string aid){
+    string path = "src/server/data/auctions/" + aid + "/bids/";
+    int highestBid = 0;
+    for (const auto & entry : fs::directory_iterator(path)){
+        string filePath = entry.path().string();
+        string s_bid = filePath.substr(34,6);
+        int bid = stoi(s_bid);
+        if(bid>highestBid){
+            highestBid = bid;
+        }
+    }
+    if(highestBid==0){
+        const string path = "src/server/data/auctions/" + aid + "/start.txt";
+        ifstream inputStartFile(path);
+        if (!inputStartFile.is_open()) {
+            cerr << "Error opening file" << endl;
+            exit(-1);
+            return false;
+        }
+        const int buffer_size = 512;
+        char buffer[buffer_size] = "";
+        inputStartFile.read(buffer, buffer_size);
+        inputStartFile.close();
+        //UID name assetfname startvalue timeactive start_ datetime startfulltime
+        int k=0;
+        string initial_bid;
+        for(char c : buffer){
+            if(c==' ')
+                k++;
+            else if(k==3)
+                initial_bid+=c;
+            else if(k==4)
+                break;
+        }
+        highestBid = stoi(initial_bid)-1;
+    }
+    return highestBid;
 }
