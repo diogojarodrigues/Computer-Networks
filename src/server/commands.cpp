@@ -22,28 +22,37 @@ void login(string request) {
     string password = request.substr(11, 8);
     string user_folder_path = "./src/server/data/users/" + uid + "/";
     
-    // User does not exist
-    if (!user_exists(uid)) {
 
-        fs::create_directory(user_folder_path);
-        fs::create_directory(user_folder_path + "hosted");
-        fs::create_directory(user_folder_path + "bidded");
-        createFile(user_folder_path + "/login.txt", "");
-        createFile(user_folder_path + "/pass.txt", password);   
+    if (!user_registered(uid)) {                                    // User not registered
 
-        write_udp_message("RLI REG\n");
+        if (!user_exists(uid)) {                                    // User have never existed on the system
+            fs::create_directory(user_folder_path);
+            fs::create_directory(user_folder_path + "hosted");
+            fs::create_directory(user_folder_path + "bidded");
+        }
+        
+        createFile(user_folder_path + "/login.txt", "");             
+        createFile(user_folder_path + "/pass.txt", password); 
+
+        write_udp_message("RLI REG\n");                             //TODO: é suposto ser RLI REG para ambos os casos em que o user não está registado?
         return;
     }
 
-    if (!passwordsMatch(uid, password)) {
+    if (!passwordsMatch(uid, password)) {                           // Password does not match
         write_udp_message("RLI NOK\n");
         return;
+    }
+
+    if (!user_loggged_in(uid)) {                                    // User is not logged in
+        createFile(user_folder_path + "/login.txt", "");
     }
     
     write_udp_message("RLI OK\n");
 }
 
 void logout(string request, bool unregister) {
+    
+    string opcode = (unregister == true) ? "RUR" : "RLO";
 
     if (
         request.length() != 20
@@ -65,27 +74,27 @@ void logout(string request, bool unregister) {
     // User does not exist
     if ( !user_exists(uid) ) { 
         if (DEBUG) cout << "logout: user %s does not exist\n", uid.c_str();
-        write_udp_message("RLO UNR\n");
+        write_udp_message(opcode + " UNR\n");
         return;
     }
 
     // Password does not match
-    if (!passwordsMatch(user_folder_path + "pass.txt", password)) {
+    if (!passwordsMatch(uid, password)) {
         if (DEBUG) cout << "logout: password does not match\n";
-        write_udp_message("ERR\n");
+        write_udp_message("ERR\n");                                     //TODO: é suposto seropcode + " NOK?
         return;
     }
     
     // User is not logged in
     if ( !user_loggged_in(uid) ) {
-        write_udp_message("RLO NOK\n");
+        write_udp_message(opcode + " NOK\n");
         return;
     }
 
     // User is logged in
     if (unregister == true) fs::remove(user_folder_path + "/pass.txt");
     fs::remove(user_folder_path + "/login.txt");
-    write_udp_message("RLO OK\n");
+    write_udp_message(opcode + " OK\n");
         
 };
 
@@ -162,6 +171,29 @@ void closee(string request) {
 };
 
 void show_asset(string request) {
+
+    if (
+        request.length() != 8
+        || request[3] != ' '
+        || request[7] != '\n'
+        || !isAid(request.substr(4, 3))
+    ) {
+        if (DEBUG) cout << "show_asset: wrong arguments\n";
+        write_tcp_message("ERR\n");
+        return;
+    }
+
+    string aid = request.substr(4, 3);
+
+    //TODO: talvez faltem mais verificações
+    if (!fs::exists("src/server/data/auctions/" + aid + "/")) {
+        if (DEBUG) cout << "show_asset: auction does not exist\n";
+        write_tcp_message("RSA NOK\n");
+        return;
+    }
+
+    write_tcp_message("RSA OK ");
+    sendImage(sockett, aid);
 
 };
 

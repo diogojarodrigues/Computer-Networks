@@ -50,8 +50,16 @@ void receive_tcp_image(int sockett){
     while (1){
         aux=read(sockett,buffer,1);
         if(aux==-1) exit(1);
+
+        if (i == 0 && buffer[i]=='E') {
+            cout << "something went wrong" << endl;
+            return;
+        }
+
         if (buffer[i]==' ' || buffer[i]=='\n'){
             k++;
+
+            
             if(k==2 && response == "RSA NOK" ){
                 cout << "asset does not exist" << endl;
                 return;
@@ -75,7 +83,8 @@ void receive_tcp_image(int sockett){
         }
         
     }
-    string path="assets/" + fname;
+
+    string path="src/user/images/" + fname;
 
     FILE *file;
     file = fopen(path.c_str(), "w");
@@ -103,7 +112,7 @@ void receive_tcp_image(int sockett){
     }
     fclose(file);
     
-    cout << "asset was saved in file " << fname << " with " << fsize << " bytes"<<endl;
+    cout << "asset file was saved in src/user/images/" << fname << " with " << fsize << " bytes"<<endl;
 
 
 }
@@ -156,16 +165,13 @@ string send_tcp_request(string message, type type, ifstream* file) {
 
     //Sending message
     aux=write(sockett, message.c_str(), message.size());
-    printf("Message sent to server: %s.", message.c_str());
     if(aux==-1) exit(1);                    /*error*/       //TODO: TEMOS DE MUDAR DEPOIS ESTES ERROS
 
     if (type == RECEIVE_TCP_IMAGE) {
-        printf("Receiving image\n");
         receive_tcp_image(sockett);
         return " ";
     }
     if (type == SEND_TCP_IMAGE) {
-        printf("\nSending image\n");
         send_tcp_image(sockett, file);
     }
 

@@ -13,8 +13,8 @@
 #include <cerrno>
 #include <cstdlib>
 
-#define PORT "58098"
-#define HOST "localhost"
+#define PORT "58097"
+#define HOST "192.168.1.71"
 
 using namespace std;
 

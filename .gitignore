@@ -5,6 +5,7 @@
 **/*.out
 **/bin
 
+relatorio.html
 server*
 test*
 user*

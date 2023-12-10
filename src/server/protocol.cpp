@@ -120,7 +120,7 @@ void write_tcp_message(string message) {
         exit(EXIT_FAILURE);
     }
 
-    if (DEBUG) cout << "END: sent TCP response:" << message << "(" << message.size() << " bytes)\n";
+    if (DEBUG) cout << "END: sent TCP response: " << message << "(" << message.size() << " bytes)\n";
 }
 
 void close_tcp_socket() {

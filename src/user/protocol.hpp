@@ -10,11 +10,8 @@
 #include <unistd.h>
 #include <cstring>
 
-//#define PORT "58098"                                //TODO: UNCOMENT WHEN SUBMITTING
-//#define SERVER_IP "localhost"                       //TODO: UNCOMENT WHEN SUBMITTING
-
-#define PORT "58011"                              //TODO: CHANGE THIS WHEN SUBMITTING
-#define SERVER_IP "tejo.tecnico.ulisboa.pt"       //TODO: CHANGE THIS WHEN SUBMITTING
+#define PORT "58097"
+#define SERVER_IP "localhost"
 
 using namespace std;
 

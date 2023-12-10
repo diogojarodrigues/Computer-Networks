@@ -23,6 +23,7 @@ namespace fs = std::filesystem;
 
 // Validations functions
 bool isUid(const string str);
+bool isAid(const string str);
 bool isPassword(const string str);
 bool isFileName(const string str);
 bool isFileSize(const string str);
@@ -33,14 +34,17 @@ bool isDuration(const string str);
 // Utils functions
 bool user_exists(const string uid);
 bool user_loggged_in(const string uid);
+bool user_registered(const string uid);
 bool passwordsMatch(const string uid, const string password);
 
 
 vector<string> split(const string str);
-string generateAid();
-void createFile(const string path, const string content);
-void saveImage(int socket, const string file, int size);
 string start_datetime(time_t timestamp);
+void createFile(const string path, const string content);
+
+string generateAid();
+void saveImage(int socket, const string file, int size);
+void sendImage(int sockett, const string aid);
 
 
 #endif // UTILS_SERVER_HPP

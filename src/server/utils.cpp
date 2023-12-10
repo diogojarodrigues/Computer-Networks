@@ -69,6 +69,17 @@ bool isUid(const string str) {
     return aux;
 }
 
+bool isAid(const string str) {
+    if (str.length() != 3) {
+        if (DEBUG) cout << "aid length is not 3\n";
+        return false;
+    }
+
+    bool aux = isNumeric(str);
+    if (!aux && DEBUG) cout << "aid is not numeric\n";
+    return aux;
+}
+
 bool isPassword(const string str) {
     if (str.length() != 8) {
         if (DEBUG) cout << "password length is not 8\n";
@@ -148,6 +159,11 @@ bool user_loggged_in(const string uid) {
     return fs::exists(path);
 }
 
+bool user_registered(const string uid) {
+    const string path = "src/server/data/users/" + uid + "/pass.txt";
+    return fs::exists(path);
+}
+
 bool passwordsMatch(const string uid, const string password) {
 
     const string path = "src/server/data/users/" + uid + "/pass.txt";
@@ -208,9 +224,9 @@ void saveImage(int socket, const string file, int size) {
     int bytes_read = 0;
     int count = 0;
 
-    ofstream assetFile(file, std::ios::binary);
+    ofstream assetFile(file, ios::binary);
     if (!assetFile.is_open()) {
-        cerr << "Error opening file" << std::endl;
+        cerr << "Error opening file" << endl;
         exit(-1);
     }
 
@@ -243,4 +259,51 @@ string start_datetime(time_t timestamp) {
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
 
     return string(buffer);
+}
+
+void sendImage(int sockett, const string aid) {
+    string path = "src/server/data/auctions/" + aid + "/asset/";
+
+    // Check if the directory exists
+    if (!fs::exists(path) || !fs::is_directory(path)) {
+        cerr << "Directory does not exist or is not a directory" << endl;
+        exit(-1);
+    }
+
+    // Get the first file in the directory
+    fs::directory_iterator itr(path);
+    if (itr == fs::end(itr)) {
+        cerr << "No files found in the directory" << endl;
+        exit(-1);
+    }
+
+    string filePath = itr->path().string(); // Get the file path
+
+    ifstream assetFile(filePath, ios::binary);
+    if (!assetFile.is_open()) {
+        cerr << "Error opening file" << endl;
+        exit(-1);
+    }
+
+    string filename = fs::path(filePath).filename().string();
+    string filesize = to_string(fs::file_size(filePath));
+
+    // Print file name and file size
+    write(sockett, filename.c_str(), filename.length());
+    write(sockett, " ", 1);
+    write(sockett, filesize.c_str(), filesize.length());
+    write(sockett, " ", 1);
+
+    char buffer[BUFFER_SIZE];
+    int bytes_read = 0;
+
+    while (!assetFile.eof()) {
+        bytes_read = assetFile.read(buffer, sizeof(buffer)).gcount();
+        write(sockett, buffer, bytes_read);
+        memset(buffer, 0, sizeof(buffer));
+    }
+
+    write(sockett, "\n", 1);
+
+    assetFile.close();
 }
