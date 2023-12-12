@@ -76,6 +76,12 @@ void handle_tcp_message() {
 
 int main(int argc, char** argv) {
 
+    string path = "src/server/data";
+    if (!fs::exists(path)) fs::create_directory(path);
+    if (!fs::exists(path + "/users")) fs::create_directory(path + "/users");
+    if (!fs::exists(path + "/auctions")) fs::create_directory(path + "/auctions");
+
+
     if (initialize_udp_socket() == -1) {
         cerr << "main: error initializing udp socket\n";
         exit(-1);

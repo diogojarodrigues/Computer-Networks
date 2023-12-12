@@ -131,7 +131,7 @@ bool isValue(const string str) {
     }
 
     bool aux = isNumeric(str);
-    if (!aux && DEBUG) cout << "value is not numeric\n";
+    if (!aux && DEBUG) cout << "value is not numeric: " << str << "\n";
     return aux;
 }
 
@@ -188,7 +188,7 @@ bool passwordsMatch(const string uid, const string password) {
     return password == correctPassword;
 }
 
-string start_datetime(time_t timestamp) {
+string format_datetime(time_t timestamp) {
     struct tm *timeinfo;
     char buffer[20]; // Sufficiently large buffer to hold the formatted date and time
 
@@ -225,19 +225,15 @@ bool auction_closed(const string aid) {
         else if(k==7)
             start_fulltime+=c;
     }
-    printf("Erro1\n");
+
     if(stoi(timeactive)+stoi(start_fulltime)>time(NULL)){
-        printf("%d < %ld\n",stoi(timeactive)+stoi(start_fulltime),time(NULL));
-        printf("Erro3\n");
+        // if (DEBUG) cout << stoi(timeactive)+stoi(start_fulltime) << " < " << time(NULL) << endl;
         return false;
     }
-    printf("Erro2\n");
 
     string file = "src/server/data/auctions/" + aid + "/end.txt";
     time_t timestamp = stoi(timeactive)+stoi(start_fulltime);
-    string content = start_datetime(timestamp)+ " " + timeactive;
-    printf("content: %s\n",content.c_str());
-    printf("timestamp: %ld\n",timestamp);
+    string content = format_datetime(timestamp)+ " " + timeactive;
     createFile(file, content);
     return true;
 
@@ -262,24 +258,52 @@ string getAuctionOwner(const string aid) {
 
 }
 
-vector<string> split(const string str) {
+string getAuctionDuration(const string aid, time_t inicial_time) {
+    const string path = "src/server/data/auctions/" + aid + "/start.txt";
+
+    ifstream inputOwnerFile(path);
+    if (!inputOwnerFile.is_open()) {        
+        cerr << "Error opening file" << endl;
+        exit(-1);
+        return "";
+    }
+
+    vector<string> fields = split(readFile(path));
+
+    if (fields.size() != 8) {
+        if (DEBUG) cout << "getAuctionDuration: wrong number of fields\n";
+        exit(-1);
+    }
+
+    time_t duration = inicial_time - stoi(fields[7]);
+
+    return to_string(duration);
+}
+
+vector<string> split(string str) {
     vector<string> tokens;
-    /**stringstream ss(str);
+    
+    if (str[str.length() - 1] == '\n') {
+        str = str.substr(0, str.length() - 1);
+    }
+
+    stringstream ss(str);
     string token;
     
     while (getline(ss, token, ' ')) {
         tokens.push_back(token);
-    }*/
-    string buffer;
-    for(char c:str){
-        if(c==' '|| c== '\n'){
-            tokens.push_back(buffer);
-            buffer="";
-        }
-        else{
-            buffer+=c;
-        }
     }
+    
+    // string buffer;
+    // for(char c:str){
+    //     if(c==' '|| c== '\n'){
+    //         tokens.push_back(buffer);
+    //         buffer="";
+    //     }
+    //     else{
+    //         buffer+=c;
+    //     }
+    // }
     
     return tokens;
 }
@@ -306,6 +330,23 @@ void createFile(const string path, const string content) {
     if (content != "") file << content;
 
     file.close();
+}
+
+string readFile(const string path) {
+    if (!fs::exists(path)) return string();
+
+    ifstream file(path);
+
+    if (!file.is_open()) {
+        cerr << "Error opening file" << endl;
+        exit(-1);
+    }
+
+    string content((istreambuf_iterator<char>(file)), (istreambuf_iterator<char>()));
+
+    file.close();
+
+    return content;
 }
 
 void saveImage(int socket, const string file, int size) {
@@ -423,4 +464,35 @@ int getHighestBid(string aid){
         highestBid = stoi(initial_bid)-1;
     }
     return highestBid;
+}
+
+    // readFile(entry.path().string());
+    
+vector<string> getBidders(const string aid) {
+    string path = "src/server/data/auctions/" + aid + "/bids/";
+    vector<string> bidders;
+    
+    for (const auto &entry : fs::directory_iterator(path)) {
+        bidders.push_back(entry.path().filename().string());
+    }
+    
+    // Sorting the bidders based on the numerical value in descending order
+    sort(bidders.begin(), bidders.end(), [](const string& a, const string& b) {
+        return stoi(a) > stoi(b); // Assuming bidder names are convertible to integers
+    });
+
+    // Selecting the top 50 bidders (or fewer if less than 50 bidders exist)
+    size_t numBidders = min(bidders.size(), static_cast<size_t>(50));
+    bidders.resize(numBidders);
+
+    // Reverse the vector to display the highest 50 in ascending order (from lowest to highest)
+    reverse(bidders.begin(), bidders.end());
+
+    vector<string> bidders_content;
+    for (string bidder : bidders) {
+        string content = readFile(path + bidder);
+        bidders_content.push_back(content);
+    }
+
+    return bidders_content;
 }

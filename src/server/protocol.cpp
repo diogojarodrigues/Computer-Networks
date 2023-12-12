@@ -1,8 +1,6 @@
 #include "./protocol.hpp"
 #include "./utils.hpp"
 
-
-
 /* ################### GLOBAL VARIABLES ################### */
 
 int udp_socket, tcp_socket, sockett;
@@ -34,18 +32,14 @@ int initialize_udp_socket() {
 }
 
 string read_udp_message() {
-    int aux, buffer_size = 21;                  //UDP messages are at most 20 bytes long
+    const int buffer_size = 21;                  //UDP messages are at most 20 bytes long
     char buffer[buffer_size] = "\0";
 
-    
-
     udp_addrlen = sizeof(udp_addr);
-    aux = recvfrom(udp_socket, buffer, buffer_size, 0, (struct sockaddr*) &udp_addr, &udp_addrlen);
-
+    int aux = recvfrom(udp_socket, buffer, buffer_size, 0, (struct sockaddr*) &udp_addr, &udp_addrlen);
     if (aux == -1) return "";
     
-
-    if (DEBUG) cout << "BEGIN: received UDP request: " << buffer << "(" << aux << " bytes)\n";
+    if (DEBUG) cout << "BEGIN: received UDP request (" << aux << " bytes): " << buffer;
 
     return buffer;
 }
@@ -57,7 +51,7 @@ void write_udp_message(string message) {
         exit(-1);
     }
 
-    if (DEBUG) cout << "END: sent UDP response: " << message << "(" << message.size() << " bytes)\n";
+    if (DEBUG) cout << "END: sent UDP response (" << message.size() << " bytes): " << message;
 }
 
 void close_udp_socket() {
@@ -112,7 +106,7 @@ string read_tcp_message(bool create_connection) {
     }
 
 
-    if (DEBUG) cout << "BEGIN: received TCP request: " << buffer << "(" << bytes_read << " bytes) \n";
+    if (DEBUG) cout << "BEGIN: received TCP request (" << bytes_read << " bytes): " << buffer;
 
     return buffer;
 }
@@ -125,7 +119,7 @@ void write_tcp_message(string message) {
         exit(EXIT_FAILURE);
     }
 
-    if (DEBUG) cout << "END: sent TCP response: " << message << "(" << message.size() << " bytes)\n";
+    if (DEBUG) cout << "END: sent TCP response (" << message.size() << " bytes): " << message << "\n";
 }
 
 void close_tcp_socket() {

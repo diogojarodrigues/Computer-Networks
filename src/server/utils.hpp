@@ -39,15 +39,17 @@ bool passwordsMatch(const string uid, const string password);
 bool auction_exists(const string aid);
 bool auction_closed(const string aid);
 string getAuctionOwner(const string aid);
+string getAuctionDuration(const string aid, time_t inicial_time);
 
-vector<string> split(const string str);
-string start_datetime(time_t timestamp);
+vector<string> split(string str);
+string format_datetime(time_t timestamp);
 void createFile(const string path, const string content);
+string readFile(const string path);
 
 string generateAid();
 void saveImage(int socket, const string file, int size);
 void sendImage(int sockett, const string aid);
 int getHighestBid(string aid);
-
+vector<string> getBidders(const string aid);
 
 #endif // UTILS_SERVER_HPP

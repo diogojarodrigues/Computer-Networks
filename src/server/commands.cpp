@@ -136,6 +136,7 @@ void my_auctions(string request) {
     message+="\n";
     write_udp_message(message);
 };
+
 void my_bids(string request) {
     vector<string> fields = split(request);
     if(fields.size()!=2 || !isUid(fields[1])){
@@ -143,12 +144,15 @@ void my_bids(string request) {
         write_udp_message("ERR\n");
         return;
     }
+
     string uid = fields[1];
+    
     if(!user_loggged_in(uid)){
         write_udp_message("RMB NLG\n");
         if (DEBUG) cout << "my_bids: user not logged in\n";
         return;
     }
+
     string path = "./src/server/data/users/" + uid + "/bidded/";
     vector<string> auctions;
     string message ="";
@@ -157,10 +161,12 @@ void my_bids(string request) {
         string aid = filePath.substr(filePath.length()-7,3);
         auctions.push_back(aid);
     }
+
     if (auctions.size()==0){
         write_udp_message("RMB NOK\n");
         return;
     }
+
     message= "RMB OK ";
     sort(auctions.begin(), auctions.end());
     for(string aid : auctions){
@@ -205,7 +211,53 @@ void list(string request) {
     message+="\n";
     write_udp_message(message);
 };
-void show_record(string request) {};
+
+void show_record(string request) {
+
+    if (
+        request.length() != 8
+        || request[3] != ' '
+        || request[7] != '\n'
+        || !isAid(request.substr(4, 3))
+    ) {
+        if (DEBUG) cout << "show_record: wrong arguments\n";
+        write_udp_message("ERR\n");
+        return;
+    }
+
+    string aid = request.substr(4, 3);
+    
+    if (!auction_exists(aid)) {
+        if (DEBUG) cout << "show_record: auction does not exist\n";
+        write_udp_message("RRC NOK\n");
+        return;
+    }
+
+    string path = "src/server/data/auctions/" + aid;
+
+    // Auction Data
+    string content = readFile(path + "/start.txt");
+    vector<string> fields = split(content);
+    if (fields.size() != 8) {
+        if (DEBUG) cout << "show_record: invalid file\n";
+        write_udp_message("ERR\n");
+        return;
+    }
+    string awnser = "RRC OK " + fields[0] + " " + fields[1] + " " + fields[2] + " " + fields[3] + " " + fields[5] + " " + fields[6] + " " + fields[4];
+
+    // Bids data
+    vector<string> bidders = getBidders(aid);
+    for (const auto &bidder : bidders) {
+        awnser += " B " + bidder;
+    }
+    
+    // End data
+    if (auction_closed(aid))
+        awnser += " E " + readFile(path + "/end.txt");
+    
+    awnser += "\n";
+    write_udp_message(awnser);
+};
 
 
 // ################ TCP COMMANDS ################
@@ -248,25 +300,24 @@ void openn(string request) {
         write_tcp_message("ROA NLG\n");
         return;
     }
+
     // Create auction folder
     string user_folder_path = "src/server/data/auctions/" + aid + "/";
     fs::create_directory(user_folder_path);
     fs::create_directory(user_folder_path + "bids/");
     fs::create_directory(user_folder_path + "asset/");
 
+    // Create start.txt file
     time_t start_fulltime = time(NULL);
-    string content = uid + " " + name + " " + file_name + " " + start_value + " " + 
-                        time_active  + " " + start_datetime(start_fulltime) + " " + 
+    string start_file_content = uid + " " + name + " " + file_name + " " + start_value + " " + 
+                        time_active  + " " + format_datetime(start_fulltime) + " " + 
                         to_string(start_fulltime);
+    createFile(user_folder_path + "start.txt", start_file_content);
 
-
-    createFile(user_folder_path + "start.txt", content);
-
-
+    // Create hosted.txt file
     string user_bid_path = "src/server/data/users/" + uid + "/hosted/" + aid + ".txt";
-    content="";
-    createFile(user_bid_path, content);
-
+    string hosted_file_content="";
+    createFile(user_bid_path, hosted_file_content);
 
     saveImage(sockett, user_folder_path + "asset/" + file_name, stoi(file_size));
 
@@ -324,13 +375,13 @@ void closee(string request) {
         return;
     }
     
+    time_t end_time = time(NULL);
+    string duration = getAuctionDuration(aid, end_time);
 
-    //Close auction
-    time_t start_fulltime = time(NULL);
     string file = "src/server/data/auctions/" + aid + "/end.txt";
-    string content = start_datetime(start_fulltime) + " " + to_string(start_fulltime);
+    string end_content = format_datetime(end_time) + " " + duration;
 
-    createFile(file, content);
+    createFile(file, end_content);
     write_tcp_message("RCL OK\n");
 
 };
@@ -365,12 +416,12 @@ void show_asset(string request) {
 void bid(string request) {
     vector<string> fields = split(request);
 
-
     if (fields.size() != 5 || !isUid(fields[1]) || !isPassword(fields[2]) || !isAid(fields[3]) || !isValue(fields[4])){
         if (DEBUG) cout << "open: invalid arguments" << endl;
         write_tcp_message("ERR\n");
         return;
     }
+
     string uid = fields[1];
     string password = fields[2];
     string aid = fields[3];
@@ -414,36 +465,19 @@ void bid(string request) {
     else{
         bid=value;
     }
-    string bid_path = "src/server/data/auctions/" + aid + "/bids/" + bid + ".txt";
-    
-    const string path = "src/server/data/auctions/" + aid + "/start.txt";
-    ifstream inputStartFile(path);
-    if (!inputStartFile.is_open()) {
-        cerr << "Error opening file" << endl;
-        exit(-1);
-    }
-    const int buffer_size = 512;
-    char buffer[buffer_size] = "";
-    inputStartFile.read(buffer, buffer_size);
-    inputStartFile.close();
-    //UID name assetfname startvalue timeactive start_ datetime startfulltime
-    int k=0;
-    string initial_fulltime;
-    for(char c : buffer){
-        if(c==' ')
-            k++;
-        else if(k==7)
-            initial_fulltime+=c;
-    }
 
-    time_t start_fulltime = time(NULL);
-    int time_active = stoi(initial_fulltime) - start_fulltime;
-    string content = uid + " " + value + " " + start_datetime(time(NULL)) + " " + to_string(time_active);
+    time_t bid_time = time(NULL);
+    string duration = getAuctionDuration(aid, bid_time);
+
+    // Create bid.txt file
+    string bid_path = "src/server/data/auctions/" + aid + "/bids/" + bid + ".txt";
+    string content = uid + " " + value + " " + format_datetime(time(NULL)) + " " + duration;
     createFile(bid_path, content);
+
+    // Create bidded.txt file
     string user_bid_path = "src/server/data/users/" + uid + "/bidded/" + aid + ".txt";
     content="";
     createFile(user_bid_path, content);
+
     write_tcp_message("RBD ACC\n");
-
-
 };
