@@ -11,8 +11,8 @@ void mybids() {
     } else if (status == "RMB NLG") {
         cout << "user is not logged" << endl;
     } else if (status == "RMB OK ") {
-        string auctions= get_auctions_bids(response);   
-        cout << auctions << endl;
+        string bids= get_auctions_bids(response);   
+        cout << bids;
         return;
     } 
 };

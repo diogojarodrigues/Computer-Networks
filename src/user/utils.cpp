@@ -27,6 +27,8 @@ string get_auctions_bids(string response){
     string final = response.substr(7, response.size()-7);
     string auctions="";
     for (char c : final) {
+        if(c=='\n')
+            continue;
         if(k>=1 && k<=4){
             auctions += c;
             k++;
@@ -38,10 +40,7 @@ string get_auctions_bids(string response){
             auctions += "is not active\n";
         else if(c==' ')
             k=1;
-        else if(c=='\n')
-            continue;
         }
-        
     return auctions;  
 }
 
@@ -79,7 +78,7 @@ string bid_record(string messages){
             message += c;
     }
     string bid_record="";
-    bid_record += "Host UID:" + bid_records[0] + "  Auction name:" + bid_records[1] + "  Asset filename:" + bid_records[2] + "  Start value:" + bid_records[3] + "  Start date-time:" + bid_records[4] + ' ' +bid_records[5] + "  Time active:" + bid_records[6] + "\n";
+    bid_record += "Host_UID:" + bid_records[0] + "  Auction_name:" + bid_records[1] + "  Asset_filename:" + bid_records[2] + "  Start_value:" + bid_records[3] + "  Start_date-time:" + bid_records[4] + ' ' +bid_records[5] + "  Time_active:" + bid_records[6] + "\n";
     unsigned long int i=7;
     while (true)
     {
@@ -87,11 +86,11 @@ string bid_record(string messages){
            break;
         }
         if(bid_records[i]=="B"){
-           bid_record += "Bidder UID:" + bid_records[i+1] + " Bid value:" + bid_records[i+2] + " Bid date-time:" + bid_records[i+3] + bid_records[i+4] + " Bid sec time:" + bid_records[i+5] + "\n";
+           bid_record += "Bidder_UID:" + bid_records[i+1] + "  Bid_value:" + bid_records[i+2] + "  Bid_date-time:" + bid_records[i+3] + " "+ bid_records[i+4] + "  Bid_sec-time:" + bid_records[i+5] + "\n";
            i+=6;
         }
         else if(bid_records[i]=="E"){
-           bid_record += "End date-time:" + bid_records[i+1] + bid_records[i+2]+ " End sec time:" + bid_records[i+3] + "\n";
+           bid_record += "End_date-time:" + bid_records[i+1] +" "+ bid_records[i+2]+ "  End_sec-time:" + bid_records[i+3] + "\n";
            break;
         }
     }

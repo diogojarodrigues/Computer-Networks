@@ -12,6 +12,8 @@
 
 #define PORT "58097"
 #define SERVER_IP "localhost"
+//#define PORT "58011"
+//#define SERVER_IP "tejo.tecnico.ulisboa.pt"
 
 using namespace std;
 
