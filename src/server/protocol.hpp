@@ -12,6 +12,9 @@
 #include <cstring>
 #include <cerrno>
 #include <cstdlib>
+#include <iostream>    
+#include <vector> 
+#include <algorithm>
 
 #define PORT "58097"
 #define HOST "192.168.1.71"

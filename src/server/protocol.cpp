@@ -35,13 +35,15 @@ int initialize_udp_socket() {
 
 string read_udp_message() {
     int aux, buffer_size = 21;                  //UDP messages are at most 20 bytes long
-    char buffer[buffer_size];
+    char buffer[buffer_size] = "\0";
 
     
 
     udp_addrlen = sizeof(udp_addr);
     aux = recvfrom(udp_socket, buffer, buffer_size, 0, (struct sockaddr*) &udp_addr, &udp_addrlen);
+
     if (aux == -1) return "";
+    
 
     if (DEBUG) cout << "BEGIN: received UDP request: " << buffer << "(" << aux << " bytes)\n";
 

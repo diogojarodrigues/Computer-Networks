@@ -42,7 +42,7 @@ bool isValidFileName(const string str) {
 
 // Function to get the last ID from the directory
 int getLastAid(const string& directory) {
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 1; i < 1000; i++) {
         ostringstream name;
         name << setfill('0') << setw(3) << i;
         string filename = name.str();
@@ -225,13 +225,19 @@ bool auction_closed(const string aid) {
         else if(k==7)
             start_fulltime+=c;
     }
+    printf("Erro1\n");
     if(stoi(timeactive)+stoi(start_fulltime)>time(NULL)){
+        printf("%d < %ld\n",stoi(timeactive)+stoi(start_fulltime),time(NULL));
+        printf("Erro3\n");
         return false;
     }
+    printf("Erro2\n");
 
     string file = "src/server/data/auctions/" + aid + "/end.txt";
     time_t timestamp = stoi(timeactive)+stoi(start_fulltime);
     string content = start_datetime(timestamp)+ " " + timeactive;
+    printf("content: %s\n",content.c_str());
+    printf("timestamp: %ld\n",timestamp);
     createFile(file, content);
     return true;
 

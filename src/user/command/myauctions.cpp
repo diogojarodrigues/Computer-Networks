@@ -11,6 +11,6 @@ void myauctions() {
         cout << "user is not logged" << endl;
     } else if (status == "RMA OK ") {
         string auctions = get_auctions_bids(response);
-        cout << auctions << endl;
+        cout << auctions ;
     } 
 };

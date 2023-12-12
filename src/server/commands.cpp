@@ -3,6 +3,7 @@
 
 #include "commands.hpp"
 
+
 void login(string request) {
     if (
         request.length() != 20
@@ -98,9 +99,112 @@ void logout(string request, bool unregister) {
 };
 
 void unregister(string request) {};
-void my_auctions(string request) {};
-void my_bids(string request) {};
-void list(string request) {};
+void my_auctions(string request) {
+    vector<string> fields = split(request);
+    if(fields.size()!=2 || !isUid(fields[1])){
+        if (DEBUG) cout << "my_auctions: wrong arguments\n";
+        write_udp_message("ERR\n");
+        return;
+    }
+    string uid = fields[1];
+    if(!user_loggged_in(uid)){
+        write_udp_message("RMA NLG\n");
+        if (DEBUG) cout << "my_auctions: user not logged in\n";
+        return;
+    }
+    string path = "./src/server/data/users/" + uid + "/hosted/";
+    vector<string> auctions;
+    string message ="";
+    for (const auto & entry : fs::directory_iterator(path)){
+        string filePath = entry.path().string();
+        string aid = filePath.substr(filePath.length()-7,3);
+        auctions.push_back(aid);
+    }
+    if (auctions.size()==0){
+        write_udp_message("RMA NOK\n");
+        return;
+    }
+    message= "RMA OK ";
+    sort(auctions.begin(), auctions.end());
+    for(string aid : auctions){
+        if(auction_closed(aid)){
+            message+= aid + " 0 ";
+        }else{
+            message+= aid + " 1 ";
+        }
+    }
+    message+="\n";
+    write_udp_message(message);
+};
+void my_bids(string request) {
+    vector<string> fields = split(request);
+    if(fields.size()!=2 || !isUid(fields[1])){
+        if (DEBUG) cout << "my_bids: wrong arguments\n";
+        write_udp_message("ERR\n");
+        return;
+    }
+    string uid = fields[1];
+    if(!user_loggged_in(uid)){
+        write_udp_message("RMB NLG\n");
+        if (DEBUG) cout << "my_bids: user not logged in\n";
+        return;
+    }
+    string path = "./src/server/data/users/" + uid + "/bidded/";
+    vector<string> auctions;
+    string message ="";
+    for (const auto & entry : fs::directory_iterator(path)){
+        string filePath = entry.path().string();
+        string aid = filePath.substr(filePath.length()-7,3);
+        auctions.push_back(aid);
+    }
+    if (auctions.size()==0){
+        write_udp_message("RMB NOK\n");
+        return;
+    }
+    message= "RMB OK ";
+    sort(auctions.begin(), auctions.end());
+    for(string aid : auctions){
+        if(auction_closed(aid)){
+            message+= aid + " 0 ";
+        }else{
+            message+= aid + " 1 ";
+        }
+    }
+    message+="\n";
+    write_udp_message(message);
+};
+
+void list(string request) {
+    vector<string> fields = split(request);
+    if(fields.size()!=1 ){
+        if (DEBUG) cout << "list: wrong arguments\n";
+        write_udp_message("ERR\n");
+        return;
+    }
+    string path = "./src/server/data/auctions/";
+    vector<string> auctions;
+    string message ="";
+    for (const auto & entry : fs::directory_iterator(path)){
+        string filePath = entry.path().string();
+        string aid = filePath.substr(filePath.length()-3,3);
+        auctions.push_back(aid);
+    }
+    if (auctions.size()==0){
+        write_udp_message("RLS NOK\n");
+        return;
+    }
+    message= "RLS OK ";
+    sort(auctions.begin(), auctions.end());
+    for(string aid : auctions){
+        if(auction_closed(aid)){
+            message+= aid + " 0 ";
+        }else{
+            message+= aid + " 1 ";
+        }
+    }
+    message+="\n";
+    write_udp_message(message);
+};
 void show_record(string request) {};
 
 
@@ -260,17 +364,17 @@ void show_asset(string request) {
 
 void bid(string request) {
     vector<string> fields = split(request);
-    string uid = fields[1];
-    string password = fields[2];
-    string aid = fields[3];
-    string value = fields[4];
 
 
-    if (fields.size() != 5 || !isUid(uid) || !isPassword(password) || !isAid(aid) || !isValue(value.c_str())){
+    if (fields.size() != 5 || !isUid(fields[1]) || !isPassword(fields[2]) || !isAid(fields[3]) || !isValue(fields[4])){
         if (DEBUG) cout << "open: invalid arguments" << endl;
         write_tcp_message("ERR\n");
         return;
     }
+    string uid = fields[1];
+    string password = fields[2];
+    string aid = fields[3];
+    string value = fields[4];
 
     int valueint=stoi(value);
 
