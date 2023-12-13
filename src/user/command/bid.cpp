@@ -1,6 +1,10 @@
 #include "../header/bid.hpp"
 
 void bid() {
+    if(current_uid.empty() or current_password.empty()) {
+        cout << "You should log in first!\n";
+        return;
+    }
     if(command.size() != 3) {
         cout << "Invalid command\n";
         return;
@@ -9,7 +13,7 @@ void bid() {
         cout << "Invalid AID\n";
         return;
     }
-    if(!isNumeric(command[2])) {
+    if(!isNumeric(command[2]) or command[2].size()>6) {
         cout << "Invalid amount\n";
         return;
     }

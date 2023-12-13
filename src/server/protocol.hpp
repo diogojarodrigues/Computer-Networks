@@ -19,6 +19,8 @@
 #define PORT "58097"
 #define HOST "192.168.1.71"
 
+extern const char* port;
+
 using namespace std;
 
 // UDP

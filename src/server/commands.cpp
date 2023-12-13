@@ -3,6 +3,7 @@
 
 #include "commands.hpp"
 
+bool debug=0;
 
 void login(string request) {
     if (
@@ -13,7 +14,7 @@ void login(string request) {
         || !isUid(request.substr(4, 6))
         || !isPassword(request.substr(11, 8))
     ) {
-        if (DEBUG) cout << "login: wrong arguments\n";
+        if (debug) cout << "login: wrong arguments\n";
         write_udp_message("ERR\n");
         return;
     }
@@ -72,7 +73,7 @@ void logout(string request, bool unregister) {
     string user_folder_path = "./src/server/data/users/" + uid + "/";
 
     // User does not exist
-    if ( !user_exists(uid) ) { 
+    if ( !user_registered(uid) ) { 
         if (DEBUG) cout << "logout: user %s does not exist\n", uid.c_str();
         write_udp_message(opcode + " UNR\n");
         return;

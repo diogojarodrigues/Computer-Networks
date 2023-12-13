@@ -36,5 +36,6 @@ std::string get_auctions_bids(std::string response);
 void print_auctions(std::string auctions);
 void create_file_copy(std::ifstream* source_file, const std::string& destination_filename);
 string bid_record(string message);
+bool isValidFileName(const string str);
 
 #endif // UTILS_HPP

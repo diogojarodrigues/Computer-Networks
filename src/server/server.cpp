@@ -81,7 +81,29 @@ int main(int argc, char** argv) {
     if (!fs::exists(path + "/users")) fs::create_directory(path + "/users");
     if (!fs::exists(path + "/auctions")) fs::create_directory(path + "/auctions");
 
-
+    if(argc==2){
+        if(!strcmp(argv[1],"-v")){
+            debug = true;
+        }
+    }
+    if(argc==3){
+        if(!strcmp(argv[1],"-p")){
+            port = (const char*) argv[2];
+        }
+    }if(argc==4){
+        if(!strcmp(argv[1],"-v")){
+            debug = true;
+        }
+        if(!strcmp(argv[2],"-p")){
+            port = (const char*)argv[3];
+        }
+        if(!strcmp(argv[1],"-p")){
+            port = (const char*)argv[2];
+        }
+        if(!strcmp(argv[3],"-v")){
+            debug = true;
+        }
+    }
     if (initialize_udp_socket() == -1) {
         cerr << "main: error initializing udp socket\n";
         exit(-1);

@@ -26,5 +26,5 @@ void show_record() {
         cout << auctions;
     }
     else
-        cout << "show_record: error" << endl;
+        cout << "show_record: unknown error" << endl;
 };

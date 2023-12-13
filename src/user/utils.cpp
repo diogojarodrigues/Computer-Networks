@@ -132,3 +132,15 @@ void create_file_copy(ifstream* source_file, const string& destination_filename)
 
     destFile.close();
 }
+
+bool isValidFileName(const string str) {
+    if (str.length() > 24) {
+        return false;
+    }
+    for (char c : str) {
+        if (!isalnum(static_cast<unsigned char>(c)) && c != '.' && c != '_' && c != '-') {
+            return false; // If any character is not alphanumeric, return false
+        }
+    }
+    return true; // All characters are alphanumeric
+}

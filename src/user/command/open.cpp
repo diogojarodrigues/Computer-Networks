@@ -5,7 +5,7 @@ void openn() {
 
     // Check if the user is logged in
     if (current_uid.empty() || current_password.empty()) {
-        cout << "You should logged in first!" << endl;
+        cout << "You should log in first!" << endl;
         return;
     }
 
@@ -25,6 +25,11 @@ void openn() {
     // Check if the parameters are valid
     if (name.length() > 10 || !isAlphanumeric(name)) {
         cout << "open: name must be alphanumeric and have less or equal than 10 digits" << endl;
+        return;
+    }
+
+    if(!isValidFileName(fname)) {
+        cout << "open: file name must be alphanumeric and have less or equal than 25 digits" << endl;
         return;
     }
 
@@ -60,7 +65,6 @@ void openn() {
     } else if (response == "ROA NLG\n") {
         cout << "user is not logged in" << endl;
     } else if (response.length() == 11 && response.substr(0, 7) == "ROA OK ") {
-        //create_file_copy(&file, fname); TODO: delete later
         cout << "Auction started with AID: " + response.substr(7, 3) << endl;
     } else {
         cout << "open: error" << endl;

@@ -13,7 +13,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h>
+#include <unistd.h> 
+#include <algorithm>
 
 #define DEBUG 1
 #define BUFFER_SIZE 2048

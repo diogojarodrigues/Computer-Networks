@@ -12,6 +12,7 @@ void list() {
         string auctions= get_auctions_bids(response);   
         cout << auctions ;
         return;
-    } 
+    } else 
+        cout << "unknown error" << endl;
 
 };

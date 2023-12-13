@@ -4,7 +4,7 @@ void unregister() {
 
     // Check if the command is valid
     if (current_uid.empty() || current_password.empty()) {
-        cout << "You should logged in first!" << endl;
+        cout << "You should log in first!" << endl;
         return;
     }
 
@@ -16,9 +16,9 @@ void unregister() {
     if (response == "RUR OK\n") {
         cout << "successful unregister" << endl;
     } else if (response == "RUR NOK\n") {
-        cout << "incorrect unregister attempt" << endl;
+        cout << "user not logged in" << endl;
     } else if (response == "RUR UNR\n") {
-        cout << "unknown user" << endl;
+        cout << "user not registered" << endl;
     } else {
         cout << "unregister: error" << endl;
     }

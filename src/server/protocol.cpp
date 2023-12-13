@@ -7,6 +7,7 @@ int udp_socket, tcp_socket, sockett;
 struct addrinfo *udp_res, *tcp_res;
 struct sockaddr_in udp_addr, tcp_addr;
 socklen_t udp_addrlen, tcp_addrlen;
+const char* port = PORT;
 
 /* ################### UDP ################### */
 
@@ -22,7 +23,7 @@ int initialize_udp_socket() {
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE;
 
-    aux = getaddrinfo(NULL, PORT, &hints, &udp_res);
+    aux = getaddrinfo(NULL, port, &hints, &udp_res);
     if (aux != 0) return -1;
 
     aux = ::bind(udp_socket, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -70,7 +71,7 @@ int initialize_tcp_socket() {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    aux = getaddrinfo(NULL, PORT, &hints, &tcp_res);
+    aux = getaddrinfo(NULL, port, &hints, &tcp_res);
     if (aux != 0) return -1;
 
     tcp_socket = socket(tcp_res->ai_family, tcp_res->ai_socktype, tcp_res->ai_protocol);

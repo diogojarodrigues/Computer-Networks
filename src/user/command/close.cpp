@@ -4,7 +4,7 @@
 
 void closee() {
     if (current_uid.empty() || current_password.empty()) {
-        cout << "You should logged in first!" << endl;
+        cout << "You should log in first!" << endl;
         return;
     }
     

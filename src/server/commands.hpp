@@ -1,6 +1,8 @@
 #ifndef COMMANDS_SERVER_HPP
 #define COMMANDS_SERVER_HPP
 
+extern bool debug;
+
 // ################ UDP COMMANDS ################
 void login(string request);
 void logout(string request, bool unregister = false);
