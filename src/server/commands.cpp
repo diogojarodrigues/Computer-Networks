@@ -99,7 +99,6 @@ void logout(string request, bool unregister) {
         
 };
 
-void unregister(string request) {};
 void my_auctions(string request) {
     vector<string> fields = split(request);
     if(fields.size()!=2 || !isUid(fields[1])){
@@ -328,7 +327,6 @@ void openn(string request) {
 
 void closee(string request) {
 
-    //0-2 3 4-9 10 11-18 19 20-22 23 
     if (
         request.length() != 24
         || request[3] != ' '

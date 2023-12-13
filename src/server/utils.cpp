@@ -175,8 +175,6 @@ bool passwordsMatch(const string uid, const string password) {
 
     ifstream inputPassFile(path);
     if (!inputPassFile.is_open()) {
-        // sendto(udp_socket, "ERR\n", 4, 0, (struct sockaddr*)&udp_addr, udp_addrlen);            //TODO: não devia estar aqui
-        // exit(-1);
         return false;
     }
 
@@ -293,18 +291,6 @@ vector<string> split(string str) {
     while (getline(ss, token, ' ')) {
         tokens.push_back(token);
     }
-    
-    // string buffer;
-    // for(char c:str){
-    //     if(c==' '|| c== '\n'){
-    //         tokens.push_back(buffer);
-    //         buffer="";
-    //     }
-    //     else{
-    //         buffer+=c;
-    //     }
-    // }
-    
     return tokens;
 }
 
