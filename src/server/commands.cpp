@@ -3,7 +3,7 @@
 
 #include "commands.hpp"
 
-bool debug=0;
+
 
 void login(string request) {
     if (
@@ -14,7 +14,7 @@ void login(string request) {
         || !isUid(request.substr(4, 6))
         || !isPassword(request.substr(11, 8))
     ) {
-        if (debug) cout << "login: wrong arguments\n";
+        if (DEBUG) cout << "login: wrong arguments\n";
         write_udp_message("ERR\n");
         return;
     }

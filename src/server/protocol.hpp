@@ -20,6 +20,7 @@
 #define HOST "192.168.1.71"
 
 extern const char* port;
+extern bool verbose;
 
 using namespace std;
 

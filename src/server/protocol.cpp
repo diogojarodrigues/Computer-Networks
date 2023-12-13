@@ -8,6 +8,7 @@ struct addrinfo *udp_res, *tcp_res;
 struct sockaddr_in udp_addr, tcp_addr;
 socklen_t udp_addrlen, tcp_addrlen;
 const char* port = PORT;
+bool verbose=0;
 
 /* ################### UDP ################### */
 
@@ -41,6 +42,7 @@ string read_udp_message() {
     if (aux == -1) return "";
     
     if (DEBUG) cout << "BEGIN: received UDP request (" << aux << " bytes): " << buffer;
+    if (verbose) cout << "BEGIN: received UDP request (" << aux << " bytes): " << buffer << "From IP: " << udp_addr.sin_addr.s_addr << " and port: "<< udp_addr.sin_port << "\n" ;
 
     return buffer;
 }
@@ -108,6 +110,7 @@ string read_tcp_message(bool create_connection) {
 
 
     if (DEBUG) cout << "BEGIN: received TCP request (" << bytes_read << " bytes): " << buffer;
+    if(verbose) cout << "BEGIN: received TCP request (" << bytes_read << " bytes): " << buffer << "From IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;
 
     return buffer;
 }

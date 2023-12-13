@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
 
     if(argc==2){
         if(!strcmp(argv[1],"-v")){
-            debug = true;
+            verbose = true;
         }
     }
     if(argc==3){
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
         }
     }if(argc==4){
         if(!strcmp(argv[1],"-v")){
-            debug = true;
+            verbose = true;
         }
         if(!strcmp(argv[2],"-p")){
             port = (const char*)argv[3];
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
             port = (const char*)argv[2];
         }
         if(!strcmp(argv[3],"-v")){
-            debug = true;
+            verbose = true;
         }
     }
     if (initialize_udp_socket() == -1) {
