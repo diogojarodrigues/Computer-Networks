@@ -57,7 +57,7 @@ void write_udp_message(string message) {
         exit(-1);
     }
 
-    if (DEBUG) cout << "END: sent UDP response (" << message.size() << " bytes): " << message;
+    if (DEBUG || verbose) cout << "END: sent UDP response (" << message.size() << " bytes): " << message;
 }
 
 void close_udp_socket() {
@@ -105,19 +105,44 @@ string read_tcp_message(bool create_connection) {
 
 
     // Handle data from the TCP connection
-    bytes_read = read(sockett, buffer, sizeof(buffer));
+    string command = "";
+    bytes_read = read(sockett, buffer, 1);
     if (bytes_read < 0) {
         cerr << "Error occurred: " << strerror(errno) << endl;
         exit(-1);
     }
+    command += buffer[0];
+    int k = 0;
+    if(buffer[0] == 'O'){
+        while(true){
+            bytes_read = read(sockett, buffer, 1);
+            if (bytes_read <0) {
+                cerr << "Error occurred: " << strerror(errno) << endl;
+                exit(-1);
+            }
+            if (buffer[0] == '\n') break;
+            if(buffer[0] == ' ') k++;
+            if(k==8) break;
+            command += buffer[0];
+        }
+        command += '\n';
 
-    if(verbose || DEBUG) {
-        cout << "BEGIN: received TCP request (" << bytes_read << " bytes): " << buffer;
-        if (strncmp(buffer, "OPA", 3) == 0) cout << endl;
-        cout << "From IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;
-    }    
+    }else{
+        bytes_read = read(sockett, buffer, sizeof(buffer));
+        if (bytes_read < 0) {
+            cerr << "Error occurred: " << strerror(errno) << endl;
+            exit(-1);
+        }
+        command += buffer;
+    }
 
-    return buffer;
+    
+
+
+    if (DEBUG) cout << "BEGIN: received TCP request (" << command.size() << " bytes): " << command;
+    if(verbose) cout << "BEGIN: received TCP request (" << command.size() << " bytes): " << command << "From IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;
+
+    return command;
 }
 
 void write_tcp_message(string message) {
@@ -128,7 +153,7 @@ void write_tcp_message(string message) {
         exit(EXIT_FAILURE);
     }
 
-    if (DEBUG) cout << "END: sent TCP response (" << message.size() << " bytes): " << message << "\n";
+    if (DEBUG || verbose) cout << "END: sent TCP response (" << message.size() << " bytes): " << message << "\n";
 }
 
 void close_tcp_socket() {
