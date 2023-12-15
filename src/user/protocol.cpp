@@ -47,7 +47,7 @@ void receive_tcp_image(int sockett){
     int i=0;
     int k=0;
     string response, fname, fsize;
-    while (1){
+    while (true){
         aux=read(sockett,buffer,1);
         if(aux==-1) exit(1);
 
