@@ -31,14 +31,14 @@ void get_input(vector<string>* command) {
 
 int main(int argc, char** argv) {
 
-    if(argc==3){
+    if(argc==3) {
         if(!strcmp(argv[1],"-n")){
             server_ip = (const char*) argv[2];
         }
         else if(!strcmp(argv[1],"-p")){
             port = (const char*)argv[2];
         }
-    }if(argc==5){
+    } if(argc==5) {
         if(!strcmp(argv[1],"-n")){
             server_ip = (const char*)argv[2];
         }
@@ -53,9 +53,26 @@ int main(int argc, char** argv) {
         }
     }
     
+    server_info_udp = nullptr;
+    if (get_server_info(&server_info_udp, true) == -1) {
+        cout << "Error getting server info" << endl;
+        return -1;
+    }
+
+    // Creating socket
+    client_udp_socket = create_socket(true); 
+    if (client_udp_socket == -1) {
+        cout << "Error creating udp socket" << endl;
+        return -1;
+    }
 
     while (true) {
         
+        if (!current_uid.empty() && !current_password.empty()) {
+            cout << current_uid << " ";
+        } else {
+            cout << "anonymous ";
+        }
         cout << ">> ";
         get_input(&command);
 
@@ -91,6 +108,9 @@ int main(int argc, char** argv) {
 
         cout << endl;
     } 
+
+    freeaddrinfo(server_info_udp);
+    close(client_udp_socket);
 
     return 0;
 }

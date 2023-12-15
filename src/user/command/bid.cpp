@@ -25,6 +25,8 @@ void bid() {
         cout << "Bid not placed, auction not active\n";
     } else if(response=="RBD NLG\n") {
         cout << "Bid not placed, user is not logged in\n";
+        current_uid.clear();
+        current_password.clear();
     } else if(response=="RBD REF\n") {
         cout << "Bid not placed, auction has a larger bid\n";
     } else if(response=="RBD ILG\n") {

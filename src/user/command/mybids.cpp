@@ -14,6 +14,8 @@ void mybids() {
         cout << "user UID has no ongoing bids" << endl;
     } else if (status == "RMB NLG") {
         cout << "user is not logged in" << endl;
+        current_uid.clear();
+        current_password.clear();
     } else if (status == "RMB OK ") {
         string bids= get_auctions_bids(response);   
         cout << bids;

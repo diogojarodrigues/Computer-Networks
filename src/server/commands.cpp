@@ -3,8 +3,6 @@
 
 #include "commands.hpp"
 
-
-
 void login(string request) {
     if (
         request.length() != 20
@@ -35,7 +33,7 @@ void login(string request) {
         createFile(user_folder_path + "/login.txt", "");             
         createFile(user_folder_path + "/pass.txt", password); 
 
-        write_udp_message("RLI REG\n");                             //TODO: é suposto ser RLI REG para ambos os casos em que o user não está registado?
+        write_udp_message("RLI REG\n");                             //TODO: (fazer teste) é suposto ser RLI REG para ambos os casos em que o user não está registado? caso em que nunca foi criado e caso em que foi criado
         return;
     }
 
@@ -82,7 +80,7 @@ void logout(string request, bool unregister) {
     // Password does not match
     if (!passwordsMatch(uid, password)) {
         if (DEBUG) cout << "logout: password does not match\n";
-        write_udp_message("ERR\n");                                     //TODO: é suposto seropcode + " NOK?
+        write_udp_message("ERR\n");                                     //TODO: (fazer teste) é suposto ser opcode + " NOK?
         return;
     }
     
@@ -400,7 +398,7 @@ void show_asset(string request) {
 
     string aid = request.substr(4, 3);
 
-    //TODO: talvez faltem mais verificações
+    //TODO: (perguntar) talvez faltem mais verificações (É só isto)
     if (!auction_exists(aid)) {
         if (DEBUG) cout << "show_asset: auction does not exist\n";
         write_tcp_message("RSA NOK\n");

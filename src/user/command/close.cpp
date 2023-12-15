@@ -27,6 +27,8 @@ void closee() {
         cout << "auction was closed" << endl;
     } else if (response == "RCL NLG\n") {
         cout << "user is not logged" << endl;
+        current_uid.clear();
+        current_password.clear();
     } else if (response == "RCL EAU\n") {
         cout << "auction does not exist" << endl;
     } else if (response == "RCL EOW\n") {

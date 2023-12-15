@@ -17,6 +17,8 @@ void unregister() {
         cout << "successful unregister" << endl;
     } else if (response == "RUR NOK\n") {
         cout << "user not logged in" << endl;
+        current_uid.clear();
+        current_password.clear();
     } else if (response == "RUR UNR\n") {
         cout << "user not registered" << endl;
     } else {

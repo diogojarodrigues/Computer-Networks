@@ -13,6 +13,8 @@ void myauctions() {
         cout << "user UID has no ongoing auctions" << endl;
     } else if (status == "RMA NLG") {
         cout << "user is not logged in" << endl;
+        current_uid.clear();
+        current_password.clear();
     } else if (status == "RMA OK ") {
         string auctions = get_auctions_bids(response);
         cout << auctions ;

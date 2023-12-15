@@ -25,6 +25,11 @@ enum type {
 
 extern const char* port;
 extern const char* server_ip;
+extern struct addrinfo* server_info_udp;
+extern int client_udp_socket;
+
+int create_socket(bool udp);
+int get_server_info(struct addrinfo** server_info_udp, bool udp);
 
 string send_udp_request(string message);
 

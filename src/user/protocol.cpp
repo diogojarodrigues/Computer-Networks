@@ -1,46 +1,142 @@
 #include "protocol.hpp"
 
-/* ####################### UDP MESSAGE #######################  */
-
 const char* server_ip = SERVER_IP;
 const char* port = PORT;
+struct addrinfo* server_info_udp;
+int client_udp_socket;
+
+/* ####################### UDP MESSAGE #######################  */
+
+int create_socket(bool udp) {
+
+    int sockett;
+    if (udp) {
+        sockett = socket(AF_INET, SOCK_DGRAM, 0); // UDP socket
+    } else {
+        sockett = socket(AF_INET, SOCK_STREAM, 0); // TCP socket
+    }
+
+    if (sockett == -1) {
+        cerr << "Error creating socket" << endl;
+        return -1;
+    }
+
+    // Set a timeout for socket operations (e.g., 5 seconds)
+    struct timeval timeout;
+    timeout.tv_sec = 5; // 5 seconds timeout
+    timeout.tv_usec = 0;
+
+    if (setsockopt(sockett, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+        cerr << "Error setting timeout: " << strerror(errno) << endl;
+        close(sockett);
+        return -1;
+    }
+
+    return sockett;
+}
+
+int get_server_info(struct addrinfo** res, bool udp) {
+    struct addrinfo hints;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET;          // IPv4
+    udp ? hints.ai_socktype = SOCK_DGRAM : hints.ai_socktype = SOCK_STREAM;
+
+    int errcode = getaddrinfo(server_ip, port, &hints, res);
+    if (errcode != 0) {
+        cerr << "Error getting address info: " << gai_strerror(errcode) << endl;
+        return -1;
+    }
+
+    return 0;
+}
+
+// ####################### UDP REQUEST #######################  //
+
+int send_udp_message(int socket, struct addrinfo* info, string message) {
+    int aux = sendto(socket, message.c_str(), message.size(), 0, info->ai_addr, info->ai_addrlen);
+    if (aux == -1) {
+        cerr << "Send failed: " << strerror(errno) << endl;
+        return -1;
+    }
+
+    return 0;
+}
+
+int receive_udp_message(int socket, struct addrinfo* info, char* buffer) {
+    struct sockaddr_storage addr;
+    socklen_t addrlen = sizeof(addr);
+
+    int aux = recvfrom(socket, buffer, 8192, 0, (struct sockaddr*) &addr, &addrlen);
+    if (aux == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            cerr << "Timeout: Server did not respond within the specified time." << endl;
+        } else {
+            cerr << "Receive failed: " << strerror(errno) << endl;
+        }
+        return -1;
+    }
+
+    return aux;
+}
 
 string send_udp_request(string message) {
-    
-    int sockett,errcode; 
-    ssize_t aux;
-    socklen_t addrlen;
-    struct addrinfo hints, *res;
-    struct sockaddr_in addr;
-    char buffer[8192] = "\0";
 
-    sockett=socket(AF_INET,SOCK_DGRAM,0);    //UDP socket
-    if (sockett==-1) exit(1);                /*error*/
+    // Sending request
+    if (send_udp_message(client_udp_socket, server_info_udp, message) == -1) {
+        return "ERR\n";
+    }
 
-    memset(&hints,0,sizeof hints);
-    hints.ai_family=AF_INET;            //IPv4
-    hints.ai_socktype=SOCK_DGRAM;       //UDP socket
-
-    errcode=getaddrinfo(server_ip, port, &hints, &res);
-    if(errcode!=0) exit(1);            /*error*/
-
-
-    aux=sendto(sockett, message.c_str(), message.size(), 0, res->ai_addr, res->ai_addrlen);
-    if(aux==-1) exit(1);                 /*error*/
-    addrlen=sizeof(addr);
-    aux=recvfrom(sockett,buffer, 8192, 0, (struct sockaddr*) &addr, &addrlen);
-    if(aux==-1) exit(1);                 /*error*/
-
-
-    freeaddrinfo(res);
-    close(sockett);
+    // Receiving response
+    char buffer[8192] = "";
+    if (receive_udp_message(client_udp_socket, server_info_udp, buffer) == -1) {
+        return "ERR\n";
+    }
 
     return buffer;
 }
 
 /* ####################### TCP MESSAGE #######################  */
 
-void receive_tcp_image(int sockett){
+int connectToServer(int socket, struct addrinfo* info) {
+    int aux = connect(socket, info->ai_addr, info->ai_addrlen);
+    if (aux == -1) {
+        cerr << "Connection failed: " << strerror(errno) << endl;
+        close(socket);
+        return -1;
+    }
+
+    return 0;
+}
+
+int write_tcp_message(int socket, string message) {
+    int aux = write(socket, message.c_str(), message.size());
+    if (aux == -1) {
+        cerr << "Send failed: " << strerror(errno) << endl;
+        close(socket);;
+        return -1;
+    }
+
+    return 0;
+}
+
+int read_tcp_message(int socket, char* buffer) {
+    int aux = read(socket, buffer, 8192);
+
+    if (aux == -1) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            cerr << "Timeout: Server did not respond within the specified time." << endl;
+        } else {
+            cerr << "Receive failed: " << strerror(errno) << endl;
+        }
+        close(socket);;
+        return -1;
+    }
+
+    return aux;
+}
+
+void receive_tcp_image(int client_tcp_socket){
 
     ssize_t aux;
     char buffer[2048];
@@ -48,7 +144,7 @@ void receive_tcp_image(int sockett){
     int k=0;
     string response, fname, fsize;
     while (1){
-        aux=read(sockett,buffer,1);
+        aux=read(client_tcp_socket,buffer,1);
         if(aux==-1) exit(1);
 
         if (i == 0 && buffer[i]=='E') {
@@ -92,7 +188,7 @@ void receive_tcp_image(int sockett){
     ssize_t file_size=stoi(fsize);
     while (1)
     {
-        aux=read(sockett,buffer,2048);
+        aux=read(client_tcp_socket,buffer,2048);
         if(aux==-1) exit(1); /*error*/
         if(aux==0)
             break;
@@ -117,7 +213,7 @@ void receive_tcp_image(int sockett){
 
 }
 
-void send_tcp_image(int sockett, ifstream* file) {
+void send_tcp_image(int client_tcp_socket, ifstream* file) {
 
     if (file != nullptr && file->is_open()) {
         const int file_data_size = 2048;
@@ -128,60 +224,59 @@ void send_tcp_image(int sockett, ifstream* file) {
         
         while ((bytes_read = file->read(file_data, sizeof(file_data)).gcount()) > 0) {
             
-            aux=write(sockett, file_data, bytes_read);
+            aux=write(client_tcp_socket, file_data, bytes_read);
             if(aux==-1) exit(1);                        /*error*/
 
             memset(file_data, 0, file_data_size);       // Clear the buffer
         }
 
-        aux=write(sockett, "\n", 1);
+        aux=write(client_tcp_socket, "\n", 1);
         if(aux==-1) exit(1);                  /*error*/
     }
 }
 
 string send_tcp_request(string message, type type, ifstream* file) {
 
-    int sockett, aux;
-    // socklen_t addrlen;               //TODO: WHY DONT WE NEED THIS?
-    struct addrinfo hints,*res;
-    // struct sockaddr_in addr;         //TODO: WHY DONT WE NEED THIS?
-    
-    const int server_awmser_size = 8192;
-    char server_awnser[server_awmser_size] = "";
+    // Creating socket
+    int client_tcp_socket = create_socket(false);
+    if (client_tcp_socket == -1) {
+        return "ERR\n";
+    }
 
-    // Initializing connection
-    sockett=socket(AF_INET,SOCK_STREAM,0);   //TCP socket
-    if (sockett==-1) exit(1);                //error
-    
-    memset(&hints,0,sizeof hints);
-    hints.ai_family=AF_INET;                //IPv4
-    hints.ai_socktype=SOCK_STREAM;          //TCP socket
-    
-    aux=getaddrinfo(server_ip, port, &hints, &res);         //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
-    if(aux!=0) exit(1);                     /*error*/
+    // Getting server info
+    struct addrinfo* server_info_tcp;
+    if (get_server_info(&server_info_tcp, false) == -1) {
+        return "ERR\n";
+    }
 
-    aux=connect(sockett,res->ai_addr,res->ai_addrlen);
-    if(aux==-1) exit(1);                    /*error*/
+    // Connecting to server
+    if (connectToServer(client_tcp_socket, server_info_tcp) == -1) {
+        return "ERR\n";
+    }
 
     //Sending message
-    aux=write(sockett, message.c_str(), message.size());
-    if(aux==-1) exit(1);                    /*error*/       //TODO: TEMOS DE MUDAR DEPOIS ESTES ERROS
+    if (write_tcp_message(client_tcp_socket, message) == -1) {
+        return "ERR\n";
+    }
 
+    // Show Asset Command
     if (type == RECEIVE_TCP_IMAGE) {
-        receive_tcp_image(sockett);
+        receive_tcp_image(client_tcp_socket);
         return " ";
     }
+
+    // Open Asset Command
     if (type == SEND_TCP_IMAGE) {
-        send_tcp_image(sockett, file);
+        send_tcp_image(client_tcp_socket, file);
     }
 
     //Receiving message
-    aux=read(sockett, server_awnser, server_awmser_size);
-    if(aux==-1) exit(1);                /*error*/
+    char buffer[8192] = "";
+    if (read_tcp_message(client_tcp_socket, buffer) == -1) {
+        return "ERR\n";
+    }
     
-    // Closing connection
-    freeaddrinfo(res);                      //TODO: CHANGE THIS TO ONLY HAPPEN ONE TIME
-    close(sockett);
+    close(client_tcp_socket);
 
-    return server_awnser;
+    return buffer;
 }

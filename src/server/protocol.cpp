@@ -41,8 +41,11 @@ string read_udp_message() {
     int aux = recvfrom(udp_socket, buffer, buffer_size, 0, (struct sockaddr*) &udp_addr, &udp_addrlen);
     if (aux == -1) return "";
     
-    if (DEBUG) cout << "BEGIN: received UDP request (" << aux << " bytes): " << buffer;
-    if (verbose) cout << "BEGIN: received UDP request (" << aux << " bytes): " << buffer << "From IP: " << udp_addr.sin_addr.s_addr << " and port: "<< udp_addr.sin_port << "\n" ;
+    if (verbose || DEBUG) {
+        cout << "BEGIN: received UDP request (" << aux << " bytes): " << buffer;
+        cout << "From IP: " << udp_addr.sin_addr.s_addr << " and port: "<< udp_addr.sin_port << "\n" ;
+    }    
+    
 
     return buffer;
 }
@@ -108,9 +111,11 @@ string read_tcp_message(bool create_connection) {
         exit(-1);
     }
 
-
-    if (DEBUG) cout << "BEGIN: received TCP request (" << bytes_read << " bytes): " << buffer;
-    if(verbose) cout << "BEGIN: received TCP request (" << bytes_read << " bytes): " << buffer << "From IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;
+    if(verbose || DEBUG) {
+        cout << "BEGIN: received TCP request (" << bytes_read << " bytes): " << buffer;
+        if (strncmp(buffer, "OPA", 3) == 0) cout << endl;
+        cout << "From IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;
+    }    
 
     return buffer;
 }

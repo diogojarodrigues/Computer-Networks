@@ -16,7 +16,7 @@
 #include <unistd.h> 
 #include <algorithm>
 
-#define DEBUG 0
+#define DEBUG 1
 #define BUFFER_SIZE 2048
 
 using namespace std;
