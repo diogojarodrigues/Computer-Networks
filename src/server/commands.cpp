@@ -1,5 +1,5 @@
-#include "./protocol.hpp"
-#include "./utils.hpp"
+#include "protocol.hpp"
+#include "utils.hpp"
 
 #include "commands.hpp"
 
@@ -259,7 +259,7 @@ void show_record(string request) {
 
 
 // ################ TCP COMMANDS ################
-void openn(string request) {
+void openn(int sockett, string request) {
 
     vector<string> fields = split(request);
 
@@ -274,7 +274,7 @@ void openn(string request) {
         !isFileSize(fields[7])
     ) {
         if (DEBUG) cout << "open: invalid arguments" << endl;
-        write_tcp_message("ERR\n");
+        write_tcp_message(sockett, "ERR\n");
         return;
     }
 
@@ -289,41 +289,47 @@ void openn(string request) {
 
     if (aid == "ERR") {
         if (DEBUG) cout << "open: auction could not be started" << endl;
-        write_tcp_message("ROA NOK\n");
+        write_tcp_message(sockett, "ROA NOK\n");
         return;
     }
 
     if (!user_loggged_in(uid)) {
         if (DEBUG) cout << "open: user is not logged in" << endl;
-        write_tcp_message("ROA NLG\n");
+        write_tcp_message(sockett, "ROA NLG\n");
         return;
     }
 
     // Create auction folder
-    string user_folder_path = "src/server/data/auctions/" + aid + "/";
-    fs::create_directory(user_folder_path);
-    fs::create_directory(user_folder_path + "bids/");
-    fs::create_directory(user_folder_path + "asset/");
+    string auction_path = "src/server/data/auctions/" + aid + "/";
+    fs::create_directory(auction_path);
+    fs::create_directory(auction_path + "bids/");
+    fs::create_directory(auction_path + "asset/");
 
     // Create start.txt file
     time_t start_fulltime = time(NULL);
     string start_file_content = uid + " " + name + " " + file_name + " " + start_value + " " + 
                         time_active  + " " + format_datetime(start_fulltime) + " " + 
                         to_string(start_fulltime);
-    createFile(user_folder_path + "start.txt", start_file_content);
+    createFile(auction_path + "start.txt", start_file_content);
 
     // Create hosted.txt file
     string user_bid_path = "src/server/data/users/" + uid + "/hosted/" + aid + ".txt";
     string hosted_file_content="";
     createFile(user_bid_path, hosted_file_content);
 
-    saveImage(sockett, user_folder_path + "asset/" + file_name, stoi(file_size));
+    if (saveImage(sockett, auction_path + "asset/" + file_name, stoi(file_size)) != atoi(file_size.c_str())) {
+        if (DEBUG) cout << "open: image could not be saved" << endl;
+        fs::remove_all(auction_path);
+        fs::remove(user_bid_path);
+        write_tcp_message(sockett, "ROA NOK\n");
+        return;
+    }
 
     string response = "ROA OK " + aid + "\n";
-    write_tcp_message(response);
+    write_tcp_message(sockett, response);
 };
 
-void closee(string request) {
+void closee(int sockett, string request) {
 
     if (
         request.length() != 24
@@ -336,7 +342,7 @@ void closee(string request) {
         || !isAid(request.substr(20, 3))
     ) {
         if (DEBUG) cout << "close: wrong arguments\n";
-        write_tcp_message("ERR\n");
+        write_tcp_message(sockett, "ERR\n");
         return;
     }
 
@@ -347,28 +353,28 @@ void closee(string request) {
     // If the user does not exist
     if (!user_loggged_in(uid)) {
         if (DEBUG) cout << "close: user is not logged in\n";
-        write_tcp_message("RCL NLG\n");
+        write_tcp_message(sockett, "RCL NLG\n");
         return;
     }
 
     //If the auction does not exist
     if (!auction_exists(aid)) {
         if (DEBUG) cout << "close: auction does not exist\n";
-        write_tcp_message("RCL EAU\n");
+        write_tcp_message(sockett, "RCL EAU\n");
         return;
     }
 
     //If the auction is not owned by user id
     if (uid != getAuctionOwner(aid)) {
         if (DEBUG) cout << "close: auction is not owned by user id\n";
-        write_tcp_message("RCL EOW\n");
+        write_tcp_message(sockett, "RCL EOW\n");
         return;
     }
 
     //If the auction is already closed
     if (auction_closed(aid)) {
         if (DEBUG) cout << "close: auction is already closed\n";
-        write_tcp_message("RCL END\n");
+        write_tcp_message(sockett, "RCL END\n");
         return;
     }
     
@@ -379,11 +385,11 @@ void closee(string request) {
     string end_content = format_datetime(end_time) + " " + duration;
 
     createFile(file, end_content);
-    write_tcp_message("RCL OK\n");
+    write_tcp_message(sockett, "RCL OK\n");
 
 };
 
-void show_asset(string request) {
+void show_asset(int sockett, string request) {
 
     if (
         request.length() != 8
@@ -392,30 +398,29 @@ void show_asset(string request) {
         || !isAid(request.substr(4, 3))
     ) {
         if (DEBUG) cout << "show_asset: wrong arguments\n";
-        write_tcp_message("ERR\n");
+        write_tcp_message(sockett, "ERR\n");
         return;
     }
 
     string aid = request.substr(4, 3);
 
-    //TODO: (perguntar) talvez faltem mais verificações (É só isto)
     if (!auction_exists(aid)) {
         if (DEBUG) cout << "show_asset: auction does not exist\n";
-        write_tcp_message("RSA NOK\n");
+        write_tcp_message(sockett, "RSA NOK\n");
         return;
     }
 
-    write_tcp_message("RSA OK ");
+    write_tcp_message(sockett, "RSA OK ");
     sendImage(sockett, aid);
 
 };
 
-void bid(string request) {
+void bid(int sockett, string request) {
     vector<string> fields = split(request);
 
     if (fields.size() != 5 || !isUid(fields[1]) || !isPassword(fields[2]) || !isAid(fields[3]) || !isValue(fields[4])){
         if (DEBUG) cout << "open: invalid arguments" << endl;
-        write_tcp_message("ERR\n");
+        write_tcp_message(sockett, "ERR\n");
         return;
     }
 
@@ -427,19 +432,19 @@ void bid(string request) {
     int valueint=stoi(value);
 
     if(!auction_exists(aid)|| auction_closed(aid)){
-        write_tcp_message("RBD NOK\n");
+        write_tcp_message(sockett, "RBD NOK\n");
         return;
     }
     if(!user_loggged_in(uid)|| !passwordsMatch(uid,password)){
-        write_tcp_message("RBD NLG\n");
+        write_tcp_message(sockett, "RBD NLG\n");
         return;
     }
     if(getAuctionOwner(aid)==uid){
-        write_tcp_message("RBD ILG\n");
+        write_tcp_message(sockett, "RBD ILG\n");
         return;
     }
     if(valueint<=getHighestBid(aid)){
-        write_tcp_message("RBD REF\n");
+        write_tcp_message(sockett, "RBD REF\n");
         return;
     }
 
@@ -476,5 +481,5 @@ void bid(string request) {
     content="";
     createFile(user_bid_path, content);
 
-    write_tcp_message("RBD ACC\n");
+    write_tcp_message(sockett, "RBD ACC\n");
 };

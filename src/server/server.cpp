@@ -46,28 +46,31 @@ void read_file() {
 
 void handle_tcp_message() {
     
-    string request = read_tcp_message();
+    int sockett = connect_to_client();
+    if (sockett == -1) {
+        if (DEBUG) cout << "handle_tcp_message: error connecting to client\n";
+        exit(-1);
+    }
 
+    string request = read_tcp_message(sockett);
     if (
         request.length() < 3
     ) {
         if (DEBUG) cout << "handle_tcp_message: wrong arguments\n";
-        sendto(tcp_socket, "ERR\n", 4, 0, (struct sockaddr*)&tcp_addr, tcp_addrlen);
+        write_tcp_message(sockett, "ERR\n");
         return;
     }
 
     string opcode = request.substr(0, 3);
-    
-
     if (opcode == "OPA") {
         if (DEBUG) cout << "\n";
-        openn(request);
+        openn(sockett, request);
     } else if (opcode == "CLS") {
-        closee(request);
+        closee(sockett, request);
     } else if (opcode == "SAS") {
-        show_asset(request);
+        show_asset(sockett, request);
     } else if (opcode == "BID") {
-        bid(request);
+        bid(sockett, request);
     } else {
         cout << "invalid tcp command\n";
     }
@@ -76,6 +79,16 @@ void handle_tcp_message() {
 
 int main(int argc, char** argv) {
 
+    // Ignore SIGPIPE
+    struct sigaction act;
+    memset(&act,0,sizeof act);
+    act.sa_handler=SIG_IGN;
+    if(sigaction(SIGPIPE,&act,NULL)==-1) exit(1);
+
+    // Delete fork chieldrens
+    signal(SIGCHLD, SIG_IGN);
+
+    // Create data directory if it doesn't exist
     string path = "src/server/data";
     if (!fs::exists(path)) fs::create_directory(path);
     if (!fs::exists(path + "/users")) fs::create_directory(path + "/users");
@@ -104,6 +117,7 @@ int main(int argc, char** argv) {
             verbose = true;
         }
     }
+
     if (initialize_udp_socket() == -1) {
         cerr << "main: error initializing udp socket\n";
         exit(-1);
@@ -116,7 +130,6 @@ int main(int argc, char** argv) {
 
     //File descriptor set for select
     fd_set readfds;
-
     while (1) {
 
         FD_ZERO(&readfds);
@@ -129,7 +142,6 @@ int main(int argc, char** argv) {
 
         // Use select to monitor sockets
         int max_sd = (udp_socket > tcp_socket) ? udp_socket : tcp_socket;
-        
         int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
         if (activity < 0) {
             cerr << "main: select error\n";

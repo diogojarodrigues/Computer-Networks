@@ -120,9 +120,9 @@ int write_tcp_message(int socket, string message) {
     return 0;
 }
 
-int read_tcp_message(int socket, char* buffer) {
-    int aux = read(socket, buffer, 8192);
-
+int read_tcp_message(int socket, char* buffer, int size) {
+    
+    int aux = read(socket, buffer, size);
     if (aux == -1) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
             cerr << "Timeout: Server did not respond within the specified time." << endl;
@@ -144,8 +144,10 @@ void receive_tcp_image(int client_tcp_socket){
     int k=0;
     string response, fname, fsize;
     while (1){
-        aux=read(client_tcp_socket,buffer,1);
-        if(aux==-1) exit(1);
+        if (read_tcp_message(client_tcp_socket, buffer, 1) == -1) {
+            cout << "Error reading image from server" << endl;
+            exit(1);
+        }
 
         if (i == 0 && buffer[i]=='E') {
             cout << "something went wrong" << endl;
@@ -272,7 +274,7 @@ string send_tcp_request(string message, type type, ifstream* file) {
 
     //Receiving message
     char buffer[8192] = "";
-    if (read_tcp_message(client_tcp_socket, buffer) == -1) {
+    if (read_tcp_message(client_tcp_socket, buffer, 8192) == -1) {
         return "ERR\n";
     }
     

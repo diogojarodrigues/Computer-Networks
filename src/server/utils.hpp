@@ -14,9 +14,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h> 
+#include <signal.h>
 #include <algorithm>
 
-#define DEBUG 1
+#define DEBUG 0
 #define BUFFER_SIZE 2048
 
 using namespace std;
@@ -48,7 +49,7 @@ void createFile(const string path, const string content);
 string readFile(const string path);
 
 string generateAid();
-void saveImage(int socket, const string file, int size);
+int saveImage(int socket, const string file, int size);
 void sendImage(int sockett, const string aid);
 int getHighestBid(string aid);
 vector<string> getBidders(const string aid);

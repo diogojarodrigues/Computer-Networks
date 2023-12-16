@@ -43,8 +43,9 @@ extern struct addrinfo* tcp_res;
 extern struct sockaddr_in tcp_addr;
 
 int initialize_tcp_socket();
-string read_tcp_message(bool create_conection = true);
-void write_tcp_message(string message);
+int connect_to_client();
+string read_tcp_message(int sockett);
+void write_tcp_message(int sockett, string message);
 void close_tcp_socket();
 
 #endif // PROTOCOL_SERVER_HPP

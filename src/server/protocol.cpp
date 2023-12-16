@@ -3,7 +3,7 @@
 
 /* ################### GLOBAL VARIABLES ################### */
 
-int udp_socket, tcp_socket, sockett;
+int udp_socket, tcp_socket;
 struct addrinfo *udp_res, *tcp_res;
 struct sockaddr_in udp_addr, tcp_addr;
 socklen_t udp_addrlen, tcp_addrlen;
@@ -46,7 +46,6 @@ string read_udp_message() {
         cout << "From IP: " << udp_addr.sin_addr.s_addr << " and port: "<< udp_addr.sin_port << "\n" ;
     }    
     
-
     return buffer;
 }
 
@@ -91,29 +90,41 @@ int initialize_tcp_socket() {
     return 0;
 }
 
-string read_tcp_message(bool create_connection) {
-    char buffer[BUFFER_SIZE] = "\0";
-    int bytes_read = 0;
+int connect_to_client() {
 
-    // if (create_connection == true) {
-        sockett = accept(tcp_socket, (struct sockaddr*)&tcp_addr, &tcp_addrlen);
-        if (sockett < 0) {
-            cerr << "Error occurred: " << strerror(errno) << endl;
-            exit(-1);
-        }
-    // }
+    int sockett = accept(tcp_socket, (struct sockaddr*)&tcp_addr, &tcp_addrlen);
+    if (sockett < 0) {
+        cerr << "Error occurred: " << strerror(errno) << endl;
+        return -1;
+    }
+
+    // Set timeout
+    struct timeval timeout;
+    timeout.tv_sec = 4; // 4 seconds timeout
+    timeout.tv_usec = 0;
+
+    if (setsockopt(sockett, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {
+        cerr << "Error setting timeout: " << strerror(errno) << endl;
+        close(sockett);
+        return -1;
+    }
+
+    return sockett;
+}
 
 
-    // Handle data from the TCP connection
+string read_tcp_message(int sockett) {
     string command = "";
-    bytes_read = read(sockett, buffer, 1);
+
+    char buffer[BUFFER_SIZE] = "\0";
+    int bytes_read = read(sockett, buffer, 1);
     if (bytes_read < 0) {
         cerr << "Error occurred: " << strerror(errno) << endl;
         exit(-1);
     }
     command += buffer[0];
     int k = 0;
-    if(buffer[0] == 'O'){
+    if(buffer[0] == 'O'){               //OPA COMMAND
         while(true){
             bytes_read = read(sockett, buffer, 1);
             if (bytes_read <0) {
@@ -127,7 +138,7 @@ string read_tcp_message(bool create_connection) {
         }
         command += '\n';
 
-    }else{
+    }else{                              //OTHER COMMANDS
         bytes_read = read(sockett, buffer, sizeof(buffer));
         if (bytes_read < 0) {
             cerr << "Error occurred: " << strerror(errno) << endl;
@@ -136,16 +147,12 @@ string read_tcp_message(bool create_connection) {
         command += buffer;
     }
 
-    
-
-
-    if (DEBUG) cout << "BEGIN: received TCP request (" << command.size() << " bytes): " << command;
-    if(verbose) cout << "BEGIN: received TCP request (" << command.size() << " bytes): " << command << "From IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;
+    if(verbose || DEBUG) cout << "BEGIN: received TCP request (" << command.size() << " bytes): " << command << "From IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;
 
     return command;
 }
 
-void write_tcp_message(string message) {
+void write_tcp_message(int sockett, string message) {
 
     int aux = write(sockett, message.c_str(), message.size());
     if (aux == -1) {

@@ -335,7 +335,7 @@ string readFile(const string path) {
     return content;
 }
 
-void saveImage(int socket, const string file, int size) {
+int saveImage(int socket, const string file, int size) {
     char buffer[BUFFER_SIZE] = "\0";
     int bytes_read = 0;
     int count = 0;
@@ -343,11 +343,12 @@ void saveImage(int socket, const string file, int size) {
     ofstream assetFile(file, ios::binary);
     if (!assetFile.is_open()) {
         cerr << "Error opening file" << endl;
-        exit(-1);
+        return -1;
     }
 
     while ((bytes_read = read(socket, buffer, sizeof(buffer))) > 0) {
 
+        // End of file
         if (buffer[bytes_read - 1] == '\n') {
             bytes_read--;
             count += bytes_read;
@@ -358,11 +359,13 @@ void saveImage(int socket, const string file, int size) {
         count += bytes_read;
         assetFile.write(buffer, bytes_read);
         memset(buffer, 0, BUFFER_SIZE);
+        
     }
 
     assetFile.close();
 
     if (count != size && DEBUG) cout << "saveImage: error saving image\n";
+    return count;
 }
 
 
