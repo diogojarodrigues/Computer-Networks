@@ -57,6 +57,7 @@ void write_udp_message(string message) {
     }
 
     if (DEBUG || verbose) cout << "END: sent UDP response (" << message.size() << " bytes): " << message;
+    // if (DEBUG || verbose) cout << "To IP: " << udp_addr.sin_addr.s_addr << " and port: "<< udp_addr.sin_port << "\n" ;           //TODO: try make this work
 }
 
 void close_udp_socket() {
@@ -161,6 +162,7 @@ void write_tcp_message(int sockett, string message) {
     }
 
     if (DEBUG || verbose) cout << "END: sent TCP response (" << message.size() << " bytes): " << message << "\n";
+    // if (DEBUG || verbose) cout << "To IP: " << tcp_addr.sin_addr.s_addr << " and port: "<< tcp_addr.sin_port << "\n" ;  //TODO: try make this work
 }
 
 void close_tcp_socket() {

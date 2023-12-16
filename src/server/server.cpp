@@ -46,6 +46,15 @@ void read_file() {
 
 void handle_tcp_message() {
     
+    // Create a new process with fork
+    pid_t pid = fork();
+    if (pid == -1) {
+        if (DEBUG) cout << "handle_tcp_message: error forking\n";
+        exit(-1);
+    }
+    if (pid != 0) return;   // Parent process
+
+    // Create a new socket for the new client
     int sockett = connect_to_client();
     if (sockett == -1) {
         if (DEBUG) cout << "handle_tcp_message: error connecting to client\n";
@@ -74,7 +83,8 @@ void handle_tcp_message() {
     } else {
         cout << "invalid tcp command\n";
     }
-  
+
+    exit(0);
 }
 
 int main(int argc, char** argv) {
