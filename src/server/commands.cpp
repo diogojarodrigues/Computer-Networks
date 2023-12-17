@@ -8,13 +8,11 @@
 
 #include "commands.hpp"
 
-// mutex mtx_open;
-// mutex mtx_close;
-// mutex mtx_bid;
 
-const char* lockFilePath= "src/server/data/open.lock"; // Path to the lock file
 
-bool acquireLock() {
+bool acquireLock(string type) {
+    string temp = "src/server/data/" + type + ".lock";
+    const char* lockFilePath= temp.c_str(); // Path to the lock file
     int lockFileDescriptor = open(lockFilePath, O_CREAT | O_WRONLY | O_EXCL, 0666);
 
     if (lockFileDescriptor == -1) {
@@ -38,7 +36,9 @@ bool acquireLock() {
     return true;
 }
 
-void releaseLock() {
+void releaseLock(string type) {
+    string temp = "src/server/data/" + type + ".lock";
+    const char* lockFilePath= temp.c_str(); // Path to the lock file
     unlink(lockFilePath); // Remove the lock file
 }
 
@@ -299,7 +299,7 @@ void show_record(string request) {
 
 // ################ TCP COMMANDS ################
 void openn(int sockett, string request) {
-    while (!acquireLock())
+    while (!acquireLock("open"))
     {
         continue;
     }
@@ -318,7 +318,7 @@ void openn(int sockett, string request) {
     ) {
         if (DEBUG) cout << "open: invalid arguments" << endl;
         write_tcp_message(sockett, "ERR\n");
-        releaseLock();
+        releaseLock("open");
         return;
     }
 
@@ -339,7 +339,7 @@ void openn(int sockett, string request) {
     if (aid == "ERR") {
         if (DEBUG) cout << "open: auction could not be started" << endl;
         write_tcp_message(sockett, "ROA NOK\n");
-        releaseLock();
+        releaseLock("open");
         return;
     }
 
@@ -347,7 +347,7 @@ void openn(int sockett, string request) {
         if (DEBUG) cout << "open: user is not logged in" << endl;
         write_tcp_message(sockett, "ROA NLG\n");
         // mtx_open.unlock();
-        releaseLock();
+        releaseLock("open");
         return;
     }
 
@@ -375,7 +375,7 @@ void openn(int sockett, string request) {
         fs::remove(user_bid_path);
         write_tcp_message(sockett, "ROA NOK\n");
         // mtx_open.unlock();
-        releaseLock();
+        releaseLock("open");
         return;
     }
 
@@ -383,11 +383,15 @@ void openn(int sockett, string request) {
     write_tcp_message(sockett, response);
 
     // mtx_open.unlock();
-    releaseLock();
+    releaseLock("open");
 };
 
 void closee(int sockett, string request) {
-
+    while (!acquireLock("close"))
+    {
+        continue;
+    }
+    
     if (
         request.length() != 24
         || request[3] != ' '
@@ -400,6 +404,7 @@ void closee(int sockett, string request) {
     ) {
         if (DEBUG) cout << "close: wrong arguments\n";
         write_tcp_message(sockett, "ERR\n");
+        releaseLock("close");
         return;
     }
 
@@ -411,6 +416,7 @@ void closee(int sockett, string request) {
     if (!user_loggged_in(uid)) {
         if (DEBUG) cout << "close: user is not logged in\n";
         write_tcp_message(sockett, "RCL NLG\n");
+        releaseLock("close");
         return;
     }
 
@@ -418,6 +424,7 @@ void closee(int sockett, string request) {
     if (!auction_exists(aid)) {
         if (DEBUG) cout << "close: auction does not exist\n";
         write_tcp_message(sockett, "RCL EAU\n");
+        releaseLock("close");
         return;
     }
 
@@ -425,6 +432,7 @@ void closee(int sockett, string request) {
     if (uid != getAuctionOwner(aid)) {
         if (DEBUG) cout << "close: auction is not owned by user id\n";
         write_tcp_message(sockett, "RCL EOW\n");
+        releaseLock("close");
         return;
     }
 
@@ -432,6 +440,7 @@ void closee(int sockett, string request) {
     if (auction_closed(aid)) {
         if (DEBUG) cout << "close: auction is already closed\n";
         write_tcp_message(sockett, "RCL END\n");
+        releaseLock("close");
         return;
     }
     
@@ -443,11 +452,14 @@ void closee(int sockett, string request) {
 
     createFile(file, end_content);
     write_tcp_message(sockett, "RCL OK\n");
+    releaseLock("close");
 
 };
 
 void show_asset(int sockett, string request) {
-
+    while(!acquireLock("sa")){
+        continue;
+    }
     if (
         request.length() != 8
         || request[3] != ' '
@@ -456,6 +468,7 @@ void show_asset(int sockett, string request) {
     ) {
         if (DEBUG) cout << "show_asset: wrong arguments\n";
         write_tcp_message(sockett, "ERR\n");
+        releaseLock("sa");
         return;
     }
 
@@ -464,20 +477,26 @@ void show_asset(int sockett, string request) {
     if (!auction_exists(aid)) {
         if (DEBUG) cout << "show_asset: auction does not exist\n";
         write_tcp_message(sockett, "RSA NOK\n");
+        releaseLock("sa");
         return;
     }
 
     write_tcp_message(sockett, "RSA OK ");
     sendImage(sockett, aid);
+    releaseLock("sa");
 
 };
 
 void bid(int sockett, string request) {
+    while(!acquireLock("bid")){
+        continue;
+    }
     vector<string> fields = split(request);
 
     if (fields.size() != 5 || !isUid(fields[1]) || !isPassword(fields[2]) || !isAid(fields[3]) || !isValue(fields[4])){
         if (DEBUG) cout << "open: invalid arguments" << endl;
         write_tcp_message(sockett, "ERR\n");
+        releaseLock("bid");
         return;
     }
 
@@ -490,18 +509,22 @@ void bid(int sockett, string request) {
 
     if(!auction_exists(aid)|| auction_closed(aid)){
         write_tcp_message(sockett, "RBD NOK\n");
+        releaseLock("bid");
         return;
     }
     if(!user_loggged_in(uid)|| !passwordsMatch(uid,password)){
         write_tcp_message(sockett, "RBD NLG\n");
+        releaseLock("bid");
         return;
     }
     if(getAuctionOwner(aid)==uid){
         write_tcp_message(sockett, "RBD ILG\n");
+        releaseLock("bid");
         return;
     }
     if(valueint<=getHighestBid(aid)){
         write_tcp_message(sockett, "RBD REF\n");
+        releaseLock("bid");
         return;
     }
 
@@ -539,4 +562,5 @@ void bid(int sockett, string request) {
     createFile(user_bid_path, content);
 
     write_tcp_message(sockett, "RBD ACC\n");
+    releaseLock("bid");
 };
