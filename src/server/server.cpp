@@ -75,7 +75,7 @@ void handle_tcp_message() {
 
     string opcode = request.substr(0, 3);
     if (opcode == "OPA") {
-        if (DEBUG) cout << "\n";
+        if (verbose || DEBUG) cout << "\n";
         if (verbose || DEBUG) cout << "OPEN AUCTION REQUEST\n";
         openn(sockett, request);
     } else if (opcode == "CLS") {

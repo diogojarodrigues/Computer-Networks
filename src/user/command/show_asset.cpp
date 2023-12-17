@@ -14,7 +14,6 @@ void show_asset() {
     };
 
     string request = "SAS " + aid +"\n";
-    string response = send_tcp_request(request, RECEIVE_TCP_IMAGE, nullptr);  
-
-    
+    string response = send_tcp_request(request, RECEIVE_TCP_IMAGE);  
+  
 };

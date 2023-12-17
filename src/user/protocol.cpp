@@ -215,29 +215,53 @@ void receive_tcp_image(int client_tcp_socket){
 
 }
 
-void send_tcp_image(int client_tcp_socket, ifstream* file) {
+void send_tcp_image(int client_tcp_socket, string path) {
 
-    if (file != nullptr && file->is_open()) {
-        const int file_data_size = 2048;
-        char file_data[file_data_size] = "";
-
-        int bytes_read = 0;
-        int aux = 0;
-        
-        while ((bytes_read = file->read(file_data, sizeof(file_data)).gcount()) > 0) {
-            
-            aux=write(client_tcp_socket, file_data, bytes_read);
-            if(aux==-1) exit(1);                        /*error*/
-
-            memset(file_data, 0, file_data_size);       // Clear the buffer
-        }
-
-        aux=write(client_tcp_socket, "\n", 1);
-        if(aux==-1) exit(1);                  /*error*/
+    ifstream file(path, ios::binary);
+    if (!file.is_open()) {
+        cerr << "Error opening image file" << endl;
+        exit(1);
     }
+
+    const int file_data_size = 2048;
+    char file_data[file_data_size] = "";
+
+    int bytes_read = 0;
+    int aux = 0;
+    
+    while (file.read(file_data, sizeof(file_data))) {
+        bytes_read = file.gcount();
+
+        aux=write(client_tcp_socket, file_data, bytes_read);
+        if(aux==-1) {
+            cerr << "Error sending image to server" << endl;
+            file.close();
+            exit(1);
+        }                        /*error*/
+
+        memset(file_data, 0, file_data_size);       // Clear the buffer
+    }
+    
+    bytes_read = file.gcount();
+    aux=write(client_tcp_socket, file_data, bytes_read);
+    if(aux==-1) {
+        printf("B: ");
+        cerr << "Error sending image to server" << endl;
+        file.close();
+        exit(1);
+    }
+
+    aux=write(client_tcp_socket, "\n", 1);
+    if(aux==-1) {
+        cerr << "Error sending image to server" << endl;
+        file.close();
+        exit(1);
+    }
+
+    file.close();
 }
 
-string send_tcp_request(string message, type type, ifstream* file) {
+string send_tcp_request(string message, type type, string path) {
 
     // Creating socket
     int client_tcp_socket = create_socket(false);
@@ -269,7 +293,7 @@ string send_tcp_request(string message, type type, ifstream* file) {
 
     // Open Asset Command
     if (type == SEND_TCP_IMAGE) {
-        send_tcp_image(client_tcp_socket, file);
+        send_tcp_image(client_tcp_socket, path);
     }
 
     //Receiving message
@@ -277,7 +301,7 @@ string send_tcp_request(string message, type type, ifstream* file) {
     if (read_tcp_message(client_tcp_socket, buffer, 8192) == -1) {
         return "ERR\n";
     }
-    
+
     close(client_tcp_socket);
 
     return buffer;

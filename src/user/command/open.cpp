@@ -43,9 +43,9 @@ void openn() {
         return;
     }
 
-    // Open file
+    // Open file and get its size
     string path = "assets/" + fname;                            //TODO: CHANGE THIS WHEN SUBMITTING
-
+    
     ifstream file(path, ios::binary);
     if (!file.is_open()) {
         std::cerr << "open: file does not exist" << std::endl;
@@ -57,9 +57,14 @@ void openn() {
         std::cerr << "Error accessing the image information." << std::endl;
     }
 
-    string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + to_string(fileInfo.st_size) + " ";
-    string response = send_tcp_request(request, SEND_TCP_IMAGE, &file);
+    file.close();
 
+    // Send request
+    string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + to_string(fileInfo.st_size) + " ";
+    string response = send_tcp_request(request, SEND_TCP_IMAGE, path);
+
+
+    // Handle response
     if (response == "ROA NOK\n") {
         cout << "auction could not be started" << endl;
     } else if (response == "ROA NLG\n") {
@@ -71,6 +76,4 @@ void openn() {
     } else {
         cout << "open: error" << endl;
     }
-
-    file.close();
 };

@@ -32,9 +32,6 @@ int create_socket(bool udp);
 int get_server_info(struct addrinfo** server_info_udp, bool udp);
 
 string send_udp_request(string message);
-
-void receive_tcp_image(int fd);
-
-string send_tcp_request(string message, type type=DEFAULT, ifstream* file=nullptr);
+string send_tcp_request(string message, type type=DEFAULT, string path="");
 
 #endif // PROTOCOL_HPP

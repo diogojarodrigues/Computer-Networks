@@ -335,55 +335,48 @@ string readFile(const string path) {
     return content;
 }
 
-int saveImage(int socket, const string file, int size) {
+int saveImage(int socket, string file_path, int size) {
 
-    // // Bloqueia o escrita no ficheiro
-    // // Make a lock file
-    // string lockFile = file + ".lock";
-    // ofstream lock(lockFile);
-    // if (!lock.is_open()) {
-    //     cerr << "Error opening file" << endl;
-    //     return -1;
-    // }
-
-    char buffer[BUFFER_SIZE] = "\0";
-    int bytes_read = 0;
-    int count = 0;
-
-    
-
-
-    ofstream assetFile(file, ios::binary);
+    std::ofstream assetFile(file_path, std::ios::binary);
     if (!assetFile.is_open()) {
-        cerr << "Error opening file" << endl;
+        std::cerr << "Error opening file" << std::endl;
         return -1;
     }
 
-    while ((bytes_read = read(socket, buffer, sizeof(buffer))) > 0) {
+    char buffer[BUFFER_SIZE] = {0}; // Initialize buffer
+    int bytes_read = 0;
+    int count = 0;
 
-        // End of file
-        if (buffer[bytes_read - 1] == '\n') {
-            bytes_read--;
-            count += bytes_read;
-            assetFile.write(buffer, bytes_read);
-            break;
+    while ((bytes_read = read(socket, buffer, sizeof(buffer))) > 0) {
+        count += bytes_read;
+
+        // Check if total bytes read match the expected size
+        if (count >= size) {
+            assetFile.write(buffer, bytes_read-1);
+            memset(buffer, 0, sizeof(buffer));
+            break; // Exit the loop if size is reached
         }
 
-        count += bytes_read;
         assetFile.write(buffer, bytes_read);
-        memset(buffer, 0, BUFFER_SIZE);
+        memset(buffer, 0, sizeof(buffer));
 
+        
+    }
+
+    if (bytes_read == -1) {
+        std::cerr << "Error reading from socket" << std::endl;
+        return -1;
     }
 
     assetFile.close();
 
-    // lock.close();
-    // remove(lockFile.c_str());
-
-    if (count != size && DEBUG) cout << "saveImage: error saving image\n";
+    count = count -1;
+    if (count != size) {
+        std::cout << "saveImage: (count) " << count << " != " << size << " (size)" << std::endl;
+    }
+    
     return count;
 }
-
 
 void sendImage(int sockett, const string aid) {
     string path = "src/server/data/auctions/" + aid + "/asset/";
