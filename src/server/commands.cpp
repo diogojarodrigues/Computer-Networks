@@ -10,16 +10,32 @@
 const std::string lockFilePath = "src/server/data/open.lock"; // Path to the lock file
 
 bool acquireLock() {
-
-    while (fs::exists(lockFilePath)) {
-        printf("Waiting for lock...\n");
-        sleep(0.1);
-    }
+    /**if(fs::exists(lockFilePath)) return false; // If the lock file exists, return false (lock is already acquired
     
+    ofstream file(lockFilePath);
 
-    std::ofstream lockFile(lockFilePath);
+    if (!file.is_open()) {
+        cerr << "Error opening file" << endl;
+        exit(-1);
+    }
+
+    file.close();
+    return true;*/
+
+
+    /*std::ofstream lockFile(lockFilePath);
     if (lockFile.is_open()) {
         lockFile << "Locked";
+        lockFile.close();
+        return true;
+    } else {
+        std::cerr << "Unable to acquire lock!" << std::endl;
+        return false;
+    }*/
+    if(fs::exists(lockFilePath)) return false;
+    std::ofstream lockFile(lockFilePath);
+    if (lockFile.is_open()) {
+        lockFile << "Locked" << std::endl;
         lockFile.close();
         return true;
     } else {
@@ -29,9 +45,8 @@ bool acquireLock() {
 }
 
 void releaseLock() {
-    if (remove(lockFilePath.c_str()) != 0) {
-        std::cerr << "Unable to release lock!" << std::endl;
-    }
+    if(fs::exists(lockFilePath))
+        fs::remove(lockFilePath.c_str());
 }
 
 void login(string request) {
@@ -291,6 +306,10 @@ void show_record(string request) {
 
 // ################ TCP COMMANDS ################
 void openn(int sockett, string request) {
+    while (!acquireLock())
+    {
+        continue;
+    }
 
     vector<string> fields = split(request);
 
@@ -306,6 +325,7 @@ void openn(int sockett, string request) {
     ) {
         if (DEBUG) cout << "open: invalid arguments" << endl;
         write_tcp_message(sockett, "ERR\n");
+        releaseLock();
         return;
     }
 
@@ -318,11 +338,8 @@ void openn(int sockett, string request) {
     string file_size = fields[7];
 
     // mtx_open.lock();
-    if (acquireLock() == false) {
-        cout << "open: could not acquire lock" << endl;
-        write_tcp_message(sockett, "ERR\n");
-        return;
-    }
+    
+    
 
     string aid = generateAid();
 
