@@ -72,7 +72,7 @@ void login(string request) {
         createFile(user_folder_path + "/login.txt", "");             
         createFile(user_folder_path + "/pass.txt", password); 
 
-        write_udp_message("RLI REG\n");                             //TODO: (fazer teste) é suposto ser RLI REG para ambos os casos em que o user não está registado? caso em que nunca foi criado e caso em que foi criado
+        write_udp_message("RLI REG\n");
         return;
     }
 
@@ -119,7 +119,7 @@ void logout(string request, bool unregister) {
     // Password does not match
     if (!passwordsMatch(uid, password)) {
         if (DEBUG) cout << "logout: password does not match\n";
-        write_udp_message("ERR\n");                                     //TODO: (fazer teste) é suposto ser opcode + " NOK?
+        write_udp_message("ERR\n");
         return;
     }
     
@@ -218,12 +218,14 @@ void my_bids(string request) {
 };
 
 void list(string request) {
+
     vector<string> fields = split(request);
     if(fields.size()!=1 ){
         if (DEBUG) cout << "list: wrong arguments\n";
         write_udp_message("ERR\n");
         return;
     }
+    
     string path = "./src/server/data/auctions/";
     vector<string> auctions;
     string message ="";
@@ -346,7 +348,6 @@ void openn(int sockett, string request) {
     if (!user_loggged_in(uid)) {
         if (DEBUG) cout << "open: user is not logged in" << endl;
         write_tcp_message(sockett, "ROA NLG\n");
-        // mtx_open.unlock();
         releaseLock();
         return;
     }
@@ -374,7 +375,6 @@ void openn(int sockett, string request) {
         fs::remove_all(auction_path);
         fs::remove(user_bid_path);
         write_tcp_message(sockett, "ROA NOK\n");
-        // mtx_open.unlock();
         releaseLock();
         return;
     }
@@ -382,7 +382,6 @@ void openn(int sockett, string request) {
     string response = "ROA OK " + aid + "\n";
     write_tcp_message(sockett, response);
 
-    // mtx_open.unlock();
     releaseLock();
 };
 

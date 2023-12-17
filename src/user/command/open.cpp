@@ -43,7 +43,7 @@ void openn() {
     }
 
     // Open file and get its size
-    string path = "assets/" + fname; // TODO: CHANGE THIS WHEN SUBMITTING
+    string path = "assets/" + fname;
 
     ifstream file(path, ios::binary);
     if (!file.is_open()) {

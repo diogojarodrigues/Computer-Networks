@@ -104,7 +104,7 @@ void create_file_copy(ifstream* source_file, const string& destination_filename)
     source_file->clear(); // Clear any error flags that might affect reading
     source_file->seekg(0, ios::beg); // Move the file pointer to the beginning of the file
 
-    string destination = "src/user/images/" + destination_filename;    //TODO: CHANGE THIS WHEN SUBMITTING
+    string destination = "src/user/images/" + destination_filename;
     std::ofstream destFile(destination, ios::binary);
     if (!destFile.is_open()) {
         std::cerr << "Error: Unable to open destination file." << std::endl;

@@ -211,12 +211,14 @@ bool auction_closed(const string aid) {
     if (fs::exists(path_end)){
         return true;
     }
+    
     const string path = "src/server/data/auctions/" + aid + "/start.txt";
     ifstream inputStartFile(path);
     if (!inputStartFile.is_open()) {
-        cerr << "Error opening file" << endl;
+        cerr << "Error opening file: " << path << endl;
         exit(-1);
     }
+
     const int buffer_size = 512;
     char buffer[buffer_size] = "";
     inputStartFile.read(buffer, buffer_size);
@@ -389,15 +391,6 @@ int saveImage(int socket, string file_path, int size) {
 void sendImage(int sockett, const string aid) {
     string path = "src/server/data/auctions/" + aid + "/asset/";
 
-    // string lockFile = path + aid + ".lock";
-    // ofstream lock(lockFile);
-    // if (!lock.is_open()) {
-    //     cerr << "Error opening file" << endl;
-    //     exit(-1);
-    // }
-
-    
-
     // Check if the directory exists
     if (!fs::exists(path) || !fs::is_directory(path)) {
         cerr << "Directory does not exist or is not a directory" << endl;
@@ -440,7 +433,6 @@ void sendImage(int sockett, const string aid) {
     write(sockett, "\n", 1);
 
     assetFile.close();
-    // lock.close();
 }
 
 int getHighestBid(string aid){
