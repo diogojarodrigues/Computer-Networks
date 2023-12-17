@@ -29,7 +29,7 @@ void openn() {
     }
 
     if(!isValidFileName(fname)) {
-        cout << "open: file name must be alphanumeric and have less or equal than 25 digits" << endl;
+        cout << "open: file name must be alphanumeric and have less or equal than 24 digits" << endl;
         return;
     }
 
@@ -62,7 +62,6 @@ void openn() {
     // Send request
     string request = "OPA " + current_uid + " " + current_password + " " + name + " " + start_value + " " + timeactive + " " + fname + " " + to_string(fileInfo.st_size) + " ";
     string response = send_tcp_request(request, SEND_TCP_IMAGE, path);
-
 
     // Handle response
     if (response == "ROA NOK\n") {

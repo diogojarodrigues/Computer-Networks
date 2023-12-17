@@ -228,7 +228,7 @@ void send_tcp_image(int client_tcp_socket, string path) {
 
     int bytes_read = 0;
     int aux = 0;
-    
+
     while (file.read(file_data, sizeof(file_data))) {
         bytes_read = file.gcount();
 
@@ -239,13 +239,12 @@ void send_tcp_image(int client_tcp_socket, string path) {
             exit(1);
         }                        /*error*/
 
-        memset(file_data, 0, file_data_size);       // Clear the buffer
+        memset(file_data, 0, sizeof(file_data));       // Clear the buffer
     }
     
     bytes_read = file.gcount();
     aux=write(client_tcp_socket, file_data, bytes_read);
     if(aux==-1) {
-        printf("B: ");
         cerr << "Error sending image to server" << endl;
         file.close();
         exit(1);

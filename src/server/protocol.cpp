@@ -102,7 +102,7 @@ int connect_to_client() {
 
     // Set timeout
     struct timeval timeout;
-    timeout.tv_sec = 10; // 10 seconds timeout
+    timeout.tv_sec = 4; // 4 seconds timeout
     timeout.tv_usec = 0;
 
     if (setsockopt(sockett, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0) {

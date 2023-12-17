@@ -122,13 +122,13 @@ void my_auctions(string request) {
         write_udp_message("RMA NOK\n");
         return;
     }
-    message= "RMA OK ";
+    message= "RMA OK";
     sort(auctions.begin(), auctions.end());
     for(string aid : auctions){
         if(auction_closed(aid)){
-            message+= aid + " 0 ";
+            message+= " " + aid + " 0";
         }else{
-            message+= aid + " 1 ";
+            message+= " " + aid + " 1";
         }
     }
     message+="\n";
@@ -165,13 +165,13 @@ void my_bids(string request) {
         return;
     }
 
-    message= "RMB OK ";
+    message= "RMB OK";
     sort(auctions.begin(), auctions.end());
     for(string aid : auctions){
         if(auction_closed(aid)){
-            message+= aid + " 0 ";
+            message+= " " + aid + " 0";
         }else{
-            message+= aid + " 1 ";
+            message+= " " + aid + " 1";
         }
     }
     message+="\n";
@@ -197,13 +197,13 @@ void list(string request) {
         write_udp_message("RLS NOK\n");
         return;
     }
-    message= "RLS OK ";
+    message= "RLS OK";
     sort(auctions.begin(), auctions.end());
     for(string aid : auctions){
         if(auction_closed(aid)){
-            message+= aid + " 0 ";
+            message+= " " + aid + " 0";
         }else{
-            message+= aid + " 1 ";
+            message+= " " + aid + " 1";
         }
     }
     message+="\n";

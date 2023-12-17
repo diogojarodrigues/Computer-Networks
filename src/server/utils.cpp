@@ -360,7 +360,6 @@ int saveImage(int socket, string file_path, int size) {
         assetFile.write(buffer, bytes_read);
         memset(buffer, 0, sizeof(buffer));
 
-        
     }
 
     if (bytes_read == -1) {
