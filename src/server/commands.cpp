@@ -348,7 +348,6 @@ void openn(int sockett, string request) {
     if (!user_loggged_in(uid)) {
         if (DEBUG) cout << "open: user is not logged in" << endl;
         write_tcp_message(sockett, "ROA NLG\n");
-        // mtx_open.unlock();
         releaseLock("open");
         return;
     }
@@ -376,15 +375,12 @@ void openn(int sockett, string request) {
         fs::remove_all(auction_path);
         fs::remove(user_bid_path);
         write_tcp_message(sockett, "ROA NOK\n");
-        // mtx_open.unlock();
         releaseLock("open");
         return;
     }
 
     string response = "ROA OK " + aid + "\n";
     write_tcp_message(sockett, response);
-
-    // mtx_open.unlock();
     releaseLock("open");
 };
 
