@@ -1,5 +1,10 @@
 #include "protocol.hpp"
 #include "utils.hpp"
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "commands.hpp"
 
@@ -7,46 +12,34 @@
 // mutex mtx_close;
 // mutex mtx_bid;
 
-const std::string lockFilePath = "src/server/data/open.lock"; // Path to the lock file
+const char* lockFilePath= "src/server/data/open.lock"; // Path to the lock file
 
 bool acquireLock() {
-    /**if(fs::exists(lockFilePath)) return false; // If the lock file exists, return false (lock is already acquired
-    
-    ofstream file(lockFilePath);
+    int lockFileDescriptor = open(lockFilePath, O_CREAT | O_WRONLY | O_EXCL, 0666);
 
-    if (!file.is_open()) {
-        cerr << "Error opening file" << endl;
-        exit(-1);
-    }
-
-    file.close();
-    return true;*/
-
-
-    /*std::ofstream lockFile(lockFilePath);
-    if (lockFile.is_open()) {
-        lockFile << "Locked";
-        lockFile.close();
-        return true;
-    } else {
-        std::cerr << "Unable to acquire lock!" << std::endl;
-        return false;
-    }*/
-    if(fs::exists(lockFilePath)) return false;
-    std::ofstream lockFile(lockFilePath);
-    if (lockFile.is_open()) {
-        lockFile << "Locked" << std::endl;
-        lockFile.close();
-        return true;
-    } else {
-        std::cerr << "Unable to acquire lock!" << std::endl;
+    if (lockFileDescriptor == -1) {
+        // File already exists, meaning someone else holds the lock
         return false;
     }
+
+    // Lock the entire file
+    struct flock lock;
+    lock.l_type = F_WRLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+
+    if (fcntl(lockFileDescriptor, F_SETLK, &lock) == -1) {
+        // Another process holds the lock
+        close(lockFileDescriptor);
+        return false;
+    }
+
+    return true;
 }
 
 void releaseLock() {
-    if(fs::exists(lockFilePath))
-        fs::remove(lockFilePath.c_str());
+    unlink(lockFilePath); // Remove the lock file
 }
 
 void login(string request) {
