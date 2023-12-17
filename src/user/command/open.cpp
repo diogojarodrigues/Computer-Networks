@@ -1,6 +1,5 @@
 #include "../header/open.hpp"
 
-
 void openn() {
 
     // Check if the user is logged in
@@ -14,7 +13,7 @@ void openn() {
         cout << "open: format not valid!" << endl;
         return;
     }
-    
+
     // Handling parameters
     string name, fname, start_value, timeactive;
     name = command[1];
@@ -23,12 +22,12 @@ void openn() {
     timeactive = command[4];
 
     // Check if the parameters are valid
-    if (name.length() > 10 || !isAlphanumeric(name)) {
+    if (!isValidName(name)) {
         cout << "open: name must be alphanumeric and have less or equal than 10 digits" << endl;
         return;
     }
 
-    if(!isValidFileName(fname)) {
+    if (!isValidFileName(fname)) {
         cout << "open: file name must be alphanumeric and have less or equal than 24 digits" << endl;
         return;
     }
@@ -38,19 +37,19 @@ void openn() {
         return;
     }
 
-    if (timeactive.length() > 5 ||!isNumeric(timeactive)) {
+    if (timeactive.length() > 5 || !isNumeric(timeactive)) {
         cout << "open: time active must be numeric" << endl;
         return;
     }
 
     // Open file and get its size
-    string path = "assets/" + fname;                            //TODO: CHANGE THIS WHEN SUBMITTING
-    
+    string path = "assets/" + fname; // TODO: CHANGE THIS WHEN SUBMITTING
+
     ifstream file(path, ios::binary);
     if (!file.is_open()) {
         std::cerr << "open: file does not exist" << std::endl;
         return;
-    }  
+    }
 
     struct stat fileInfo;
     if (stat(path.c_str(), &fileInfo) != 0) {

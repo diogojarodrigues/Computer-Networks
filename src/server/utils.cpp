@@ -40,6 +40,15 @@ bool isValidFileName(const string str) {
     return true; // All characters are alphanumeric
 }
 
+bool isValidName(const string str) {
+    for (char c : str) {
+        if (!isalnum(static_cast<unsigned char>(c)) && c != ' ' && c != '-') {
+            return false; // If any character is not alphanumeric, return false
+        }
+    }
+    return true; // All characters are alphanumeric
+}
+
 // Function to get the last ID from the directory
 int getLastAid(const string& directory) {
     for (int i = 1; i < 1000; i++) {
@@ -119,7 +128,7 @@ bool isName(const string str) {
         return false;
     }
 
-    bool aux = isAlphanumeric(str);
+    bool aux = isValidName(str);
     if (!aux && DEBUG) cout << "name is not alphanumeric\n";
     return aux;    
 }

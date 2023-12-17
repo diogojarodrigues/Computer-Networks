@@ -144,3 +144,15 @@ bool isValidFileName(const string str) {
     }
     return true; // All characters are alphanumeric
 }
+
+bool isValidName(const string str) {
+    if (str.length() > 10) {
+        return false;
+    }
+    for (char c : str) {
+        if (!isalnum(static_cast<unsigned char>(c)) && c != '_' && c != '-') {
+            return false; // If any character is not alphanumeric, return false
+        }
+    }
+    return true; // All characters are alphanumeric
+}
