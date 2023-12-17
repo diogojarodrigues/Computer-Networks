@@ -4,6 +4,7 @@
 **/*.o
 **/*.out
 **/bin
+**/data
 
 relatorio.html
 AS*
