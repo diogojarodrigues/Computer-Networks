@@ -30,11 +30,11 @@ extern vector<string> command;
 extern string current_uid;
 extern string current_password;
 
-bool isNumeric(const std::string& str);
-bool isAlphanumeric(const std::string& str);
-std::string get_auctions_bids(std::string response);
-void print_auctions(std::string auctions);
-void create_file_copy(std::ifstream* source_file, const std::string& destination_filename);
+bool isNumeric(const string& str);
+bool isAlphanumeric(const string& str);
+string get_auctions_bids(string response);
+void print_auctions(string auctions);
+void create_file_copy(ifstream* source_file, const string& destination_filename);
 string bid_record(string message);
 bool isValidFileName(const string str);
 bool isValidName(const string str);

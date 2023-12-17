@@ -21,7 +21,7 @@
 #define BUFFER_SIZE 2048
 
 using namespace std;
-namespace fs = std::filesystem;
+namespace fs = filesystem;
 
 // Validations functions
 bool isUid(const string str);

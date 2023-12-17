@@ -145,12 +145,12 @@ void receive_tcp_image(int client_tcp_socket){
     string response, fname, fsize;
     while (1){
         if (read_tcp_message(client_tcp_socket, buffer, 1) == -1) {
-            cout << "Error reading image from server" << endl;
+            cerr << "Error reading image from server" << endl;
             exit(1);
         }
 
         if (i == 0 && buffer[i]=='E') {
-            cout << "something went wrong" << endl;
+            cerr << "something went wrong" << endl;
             return;
         }
 
@@ -211,7 +211,6 @@ void receive_tcp_image(int client_tcp_socket){
     fclose(file);
     
     cout << "asset file was saved in src/user/images/" << fname << " with " << fsize << " bytes"<<endl;
-
 
 }
 

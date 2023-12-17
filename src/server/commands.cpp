@@ -8,8 +8,6 @@
 
 #include "commands.hpp"
 
-
-
 bool acquireLock(string type) {
     string temp = "src/server/data/" + type + ".lock";
     const char* lockFilePath= temp.c_str(); // Path to the lock file
@@ -145,8 +143,8 @@ void my_auctions(string request) {
     }
     string uid = fields[1];
     if(!user_loggged_in(uid)){
-        write_udp_message("RMA NLG\n");
         if (DEBUG) cout << "my_auctions: user not logged in\n";
+        write_udp_message("RMA NLG\n");
         return;
     }
     string path = "./src/server/data/users/" + uid + "/hosted/";
@@ -185,8 +183,8 @@ void my_bids(string request) {
     string uid = fields[1];
     
     if(!user_loggged_in(uid)){
-        write_udp_message("RMB NLG\n");
         if (DEBUG) cout << "my_bids: user not logged in\n";
+        write_udp_message("RMB NLG\n");
         return;
     }
 

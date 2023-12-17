@@ -4,18 +4,18 @@ vector<string> command;
 string current_uid;
 string current_password;
 
-bool isNumeric(const std::string& str) {
+bool isNumeric(const string& str) {
     for (char c : str) {
-        if (!std::isdigit(c)) {
+        if (!isdigit(c)) {
             return false; // If any character is not a digit, return false
         }
     }
     return true; // All characters are digits
 }
 
-bool isAlphanumeric(const std::string& str) {
+bool isAlphanumeric(const string& str) {
     for (char c : str) {
-        if (!std::isalnum(static_cast<unsigned char>(c))) {
+        if (!isalnum(static_cast<unsigned char>(c))) {
             return false; // If any character is not alphanumeric, return false
         }
     }
@@ -105,9 +105,9 @@ void create_file_copy(ifstream* source_file, const string& destination_filename)
     source_file->seekg(0, ios::beg); // Move the file pointer to the beginning of the file
 
     string destination = "src/user/images/" + destination_filename;
-    std::ofstream destFile(destination, ios::binary);
+    ofstream destFile(destination, ios::binary);
     if (!destFile.is_open()) {
-        std::cerr << "Error: Unable to open destination file." << std::endl;
+        cerr << "Error: Unable to open destination file." << endl;
         return;
     }
 
@@ -117,7 +117,7 @@ void create_file_copy(ifstream* source_file, const string& destination_filename)
 
     while (!source_file->eof() && !source_file->fail()) {
         source_file->read(buffer, bufferSize);
-        std::streamsize bytesRead = source_file->gcount();
+        streamsize bytesRead = source_file->gcount();
 
         if (bytesRead > 0) {
             destFile.write(buffer, bytesRead);
@@ -127,7 +127,7 @@ void create_file_copy(ifstream* source_file, const string& destination_filename)
     }
 
     if (source_file->fail() && !source_file->eof()) {
-        std::cerr << "Error occurred while reading the source file." << std::endl;
+        cerr << "Error occurred while reading the source file." << endl;
     }
 
     destFile.close();

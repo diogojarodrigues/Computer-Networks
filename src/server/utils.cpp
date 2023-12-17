@@ -211,7 +211,7 @@ bool auction_closed(const string aid) {
     if (fs::exists(path_end)){
         return true;
     }
-    
+
     const string path = "src/server/data/auctions/" + aid + "/start.txt";
     ifstream inputStartFile(path);
     if (!inputStartFile.is_open()) {
@@ -223,6 +223,7 @@ bool auction_closed(const string aid) {
     char buffer[buffer_size] = "";
     inputStartFile.read(buffer, buffer_size);
     inputStartFile.close();
+
     //UID name assetfname startvalue timeactive start_ datetime startfulltime
     int k=0;
     string timeactive,start_fulltime;
@@ -236,7 +237,6 @@ bool auction_closed(const string aid) {
     }
 
     if(stoi(timeactive)+stoi(start_fulltime)>time(NULL)){
-        // if (DEBUG) cout << stoi(timeactive)+stoi(start_fulltime) << " < " << time(NULL) << endl;
         return false;
     }
 
@@ -348,9 +348,9 @@ string readFile(const string path) {
 
 int saveImage(int socket, string file_path, int size) {
 
-    std::ofstream assetFile(file_path, std::ios::binary);
+    ofstream assetFile(file_path, ios::binary);
     if (!assetFile.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
+        cerr << "Error opening file" << endl;
         return -1;
     }
 
@@ -374,7 +374,7 @@ int saveImage(int socket, string file_path, int size) {
     }
 
     if (bytes_read == -1) {
-        std::cerr << "Error reading from socket" << std::endl;
+        cerr << "Error reading from socket" << endl;
         return -1;
     }
 
@@ -382,7 +382,7 @@ int saveImage(int socket, string file_path, int size) {
 
     count = count -1;
     if (count != size) {
-        std::cout << "saveImage: (count) " << count << " != " << size << " (size)" << std::endl;
+        cerr << "saveImage: (count) " << count << " != " << size << " (size)" << endl;
     }
     
     return count;

@@ -47,13 +47,13 @@ void openn() {
 
     ifstream file(path, ios::binary);
     if (!file.is_open()) {
-        std::cerr << "open: file does not exist" << std::endl;
+        cerr << "open: file does not exist" << endl;
         return;
     }
 
     struct stat fileInfo;
     if (stat(path.c_str(), &fileInfo) != 0) {
-        std::cerr << "Error accessing the image information." << std::endl;
+        cerr << "Error accessing the image information." << endl;
     }
 
     file.close();
