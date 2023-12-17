@@ -3,6 +3,37 @@
 
 #include "commands.hpp"
 
+// mutex mtx_open;
+// mutex mtx_close;
+// mutex mtx_bid;
+
+const std::string lockFilePath = "src/server/data/open.lock"; // Path to the lock file
+
+bool acquireLock() {
+
+    while (fs::exists(lockFilePath)) {
+        printf("Waiting for lock...\n");
+        sleep(0.1);
+    }
+    
+
+    std::ofstream lockFile(lockFilePath);
+    if (lockFile.is_open()) {
+        lockFile << "Locked";
+        lockFile.close();
+        return true;
+    } else {
+        std::cerr << "Unable to acquire lock!" << std::endl;
+        return false;
+    }
+}
+
+void releaseLock() {
+    if (remove(lockFilePath.c_str()) != 0) {
+        std::cerr << "Unable to release lock!" << std::endl;
+    }
+}
+
 void login(string request) {
     if (
         request.length() != 20
@@ -285,17 +316,28 @@ void openn(int sockett, string request) {
     string time_active = fields[5];
     string file_name = fields[6];
     string file_size = fields[7];
+
+    // mtx_open.lock();
+    if (acquireLock() == false) {
+        cout << "open: could not acquire lock" << endl;
+        write_tcp_message(sockett, "ERR\n");
+        return;
+    }
+
     string aid = generateAid();
 
     if (aid == "ERR") {
         if (DEBUG) cout << "open: auction could not be started" << endl;
         write_tcp_message(sockett, "ROA NOK\n");
+        releaseLock();
         return;
     }
 
     if (!user_loggged_in(uid)) {
         if (DEBUG) cout << "open: user is not logged in" << endl;
         write_tcp_message(sockett, "ROA NLG\n");
+        // mtx_open.unlock();
+        releaseLock();
         return;
     }
 
@@ -322,11 +364,16 @@ void openn(int sockett, string request) {
         fs::remove_all(auction_path);
         fs::remove(user_bid_path);
         write_tcp_message(sockett, "ROA NOK\n");
+        // mtx_open.unlock();
+        releaseLock();
         return;
     }
 
     string response = "ROA OK " + aid + "\n";
     write_tcp_message(sockett, response);
+
+    // mtx_open.unlock();
+    releaseLock();
 };
 
 void closee(int sockett, string request) {

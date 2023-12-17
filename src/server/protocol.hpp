@@ -15,14 +15,15 @@
 #include <iostream>    
 #include <vector> 
 #include <algorithm>
+#include <mutex>
 
 #define PORT "58097"
 #define HOST "192.168.1.71"
 
+using namespace std;
+
 extern const char* port;
 extern bool verbose;
-
-using namespace std;
 
 // UDP
 extern int udp_socket;
