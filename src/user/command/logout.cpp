@@ -18,8 +18,8 @@ void logout() {
         cout << "successful logout" << endl;
     } else if (response == "RLO NOK\n") {
         cout << "user not logged in" << endl;
-        current_uid.clear();
-        current_password.clear();
+        // current_uid.clear();
+        // current_password.clear();
     } else if (response == "RLO UNR\n") {
         cout << "user not registered" << endl;
     } else {

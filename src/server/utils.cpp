@@ -336,9 +336,22 @@ string readFile(const string path) {
 }
 
 int saveImage(int socket, const string file, int size) {
+
+    // // Bloqueia o escrita no ficheiro
+    // // Make a lock file
+    // string lockFile = file + ".lock";
+    // ofstream lock(lockFile);
+    // if (!lock.is_open()) {
+    //     cerr << "Error opening file" << endl;
+    //     return -1;
+    // }
+
     char buffer[BUFFER_SIZE] = "\0";
     int bytes_read = 0;
     int count = 0;
+
+    
+
 
     ofstream assetFile(file, ios::binary);
     if (!assetFile.is_open()) {
@@ -359,10 +372,13 @@ int saveImage(int socket, const string file, int size) {
         count += bytes_read;
         assetFile.write(buffer, bytes_read);
         memset(buffer, 0, BUFFER_SIZE);
-        
+
     }
 
     assetFile.close();
+
+    // lock.close();
+    // remove(lockFile.c_str());
 
     if (count != size && DEBUG) cout << "saveImage: error saving image\n";
     return count;
@@ -371,6 +387,15 @@ int saveImage(int socket, const string file, int size) {
 
 void sendImage(int sockett, const string aid) {
     string path = "src/server/data/auctions/" + aid + "/asset/";
+
+    // string lockFile = path + aid + ".lock";
+    // ofstream lock(lockFile);
+    // if (!lock.is_open()) {
+    //     cerr << "Error opening file" << endl;
+    //     exit(-1);
+    // }
+
+    
 
     // Check if the directory exists
     if (!fs::exists(path) || !fs::is_directory(path)) {
@@ -414,6 +439,7 @@ void sendImage(int sockett, const string aid) {
     write(sockett, "\n", 1);
 
     assetFile.close();
+    // lock.close();
 }
 
 int getHighestBid(string aid){

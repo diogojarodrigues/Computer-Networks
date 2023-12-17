@@ -3,7 +3,7 @@ CXXFLAGS = -std=c++17 -Wall
 
 OBJ_DIR = bin
 TARGET_DIR = ../..
-TARGET = $(TARGET_DIR)/server
+TARGET = $(TARGET_DIR)/AS
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 

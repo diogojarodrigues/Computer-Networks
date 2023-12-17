@@ -18,7 +18,10 @@ void get_input(vector<string>* command) {
     command->clear();
     
     // Read the entire line
-    getline(cin, line);
+    if (getline(cin, line).fail()) {
+        exit(0);
+        return;
+    }
 
     istringstream iss(line);                // Creating a string stream from the line
     string word;
@@ -76,6 +79,11 @@ int main(int argc, char** argv) {
         cout << ">> ";
         get_input(&command);
 
+        if (command.empty()) {
+            cout << "Invalid command" << endl;
+            continue;
+        }
+
         if (command[0]=="login") {
             login();
         } else if (command[0]=="logout"){
@@ -106,6 +114,7 @@ int main(int argc, char** argv) {
             cout << "Invalid command" << endl;
         }
 
+        command.clear();
         cout << endl;
     } 
 

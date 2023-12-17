@@ -85,7 +85,8 @@ int initialize_tcp_socket() {
     aux = ::bind(tcp_socket, tcp_res->ai_addr, tcp_res->ai_addrlen);
     if (aux == -1) return -1;
 
-    aux = listen(tcp_socket, 1); // Allow only one pending connection
+    // aux = listen(tcp_socket, 20);
+    aux = listen(tcp_socket, 1);
     if (aux == -1) return -1;
 
     return 0;

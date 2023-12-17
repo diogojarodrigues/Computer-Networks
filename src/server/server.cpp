@@ -6,7 +6,6 @@ void handle_udp_message() {
 
     string request = read_udp_message();
 
-
     if (
         request.length() > 21
         || request.length() < 3
@@ -20,28 +19,32 @@ void handle_udp_message() {
     string opcode = request.substr(0, 3);
 
     if (opcode == "LIN") {
+        if (verbose || DEBUG) cout << "LOGIN REQUEST\n";
         login(request);
     } else if (opcode == "LOU") {
+        if (verbose || DEBUG) cout << "LOGOUT REQUEST\n";
         logout(request);
     } else if (opcode == "UNR") {
+        if (verbose || DEBUG) cout << "UNREGISTER REQUEST\n";
         logout(request, true);
     } else if (opcode == "LMA") {
+        if (verbose || DEBUG) cout << "MY AUCTIONS REQUEST\n";
         my_auctions(request);
     } else if (opcode == "LMB") {
+        if (verbose || DEBUG) cout << "MY BIDS REQUEST\n";
         my_bids(request);
     } else if (opcode == "LST") {
+        if (verbose || DEBUG) cout << "LIST REQUEST\n";
         list(request);
     } else if (opcode == "SRC") {
+        if (verbose || DEBUG) cout << "SHOW RECORD REQUEST\n";
         show_record(request);
     } else {
+        if (verbose || DEBUG) cout << "INVALID REQUEST\n";
         cout << "invalid udp command\n";
     }
 
     cout << endl;
-}
-
-void read_file() {
-
 }
 
 void handle_tcp_message() {
@@ -73,14 +76,19 @@ void handle_tcp_message() {
     string opcode = request.substr(0, 3);
     if (opcode == "OPA") {
         if (DEBUG) cout << "\n";
+        if (verbose || DEBUG) cout << "OPEN AUCTION REQUEST\n";
         openn(sockett, request);
     } else if (opcode == "CLS") {
+        if (verbose || DEBUG) cout << "CLOSE AUCTION REQUEST\n";
         closee(sockett, request);
     } else if (opcode == "SAS") {
+        if (verbose || DEBUG) cout << "SHOW ASSET REQUEST\n";
         show_asset(sockett, request);
     } else if (opcode == "BID") {
+        if (verbose || DEBUG) cout << "BID REQUEST\n";
         bid(sockett, request);
     } else {
+        if (verbose || DEBUG) cout << "INVALID REQUEST\n";
         cout << "invalid tcp command\n";
     }
 

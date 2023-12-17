@@ -64,8 +64,8 @@ void openn() {
         cout << "auction could not be started" << endl;
     } else if (response == "ROA NLG\n") {
         cout << "user is not logged in" << endl;
-        current_uid.clear();
-        current_password.clear();
+        // current_uid.clear();
+        // current_password.clear();
     } else if (response.length() == 11 && response.substr(0, 7) == "ROA OK ") {
         cout << "Auction started with AID: " + response.substr(7, 3) << endl;
     } else {
